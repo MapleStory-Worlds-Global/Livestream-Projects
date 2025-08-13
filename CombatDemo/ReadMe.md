@@ -13,6 +13,7 @@
 
 ## Table of Contents
 - [Overview](#overview)
+- [Setup & Installation](#setup-and-installation)
 - [UI Components](#ui-components)
   - [UIMyInfoSimple](#uimyinfosimple)
   - [SkillUIComponent](#skilluicomponent)
@@ -47,13 +48,18 @@ This documentation covers the Player Stats, Skills, Animation, and UI systems us
 
 ---
 ## Setup and Installation
-* Ensure the ZakumPlayerComponent is attached to the DefaultPlayer entity.  
-* Press Play to run the world
-    * A second player must be added to trigger the gameplay. 
-    * Add a second client, and move both to the portal to teleport to the game area. 
-    * After the game begins, collide with the player with the zakum helmet to steal the helmet. 
-    * Notice the zakum helmet owner has a slight speed boost. 
-    * Onwer of the zakum helmet must run away and retain the helmet when the countdown timer ends. 
+* Update the uiPath variable under Sample>DebugLogic Logic script file with the correct path for your world by right clicking on the desired map under Heirarchy>maps>CombatDemo and selecting "Copy Entity Path" then pasting it to the uiPath variable. 
+* Attach the following components to the Default Player Object found under the Workspace root folder. 
+  * PlayerSkillComponent
+  * PlayerInfoComponent
+  * PlayerAnimationComponent
+  * PlayerAttack
+  * PlayerHit
+    * Set the "CollisionGroup" property to the "Player" group. 
+  * ColliderVisualizer (Optional)
+    * If using ColliderVisualizer, enable the "VisializeAttack" property under the PlayerAttack component. 
+* Place the "Sample>Monster>Model>Model_MonsterSpawner" model entity into the Heirarchy by right clicking on the model and clicking "PlaceToHeirarchy". This will periodically spawn in monsters into the world. 
+* The DebugLogic script file will spawn the necessary UI entities for the demo. It also contains debug input events that binds F1 to open the stat window, and F2 to trigger the player to level up. 
 ---
 
 ## UI Components
