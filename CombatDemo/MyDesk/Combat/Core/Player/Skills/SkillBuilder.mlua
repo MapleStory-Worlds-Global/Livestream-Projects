@@ -1,0 +1,104 @@
+@Struct
+script SkillBuilder
+
+	property string skillIconActiveRUID = ""
+
+	property string skillIconInactiveRUID = ""
+
+	property table activationEffectRUIDs = {}
+
+	property table targetEffectRUIDs = {}
+
+	property number cooldown = 0
+
+	property number damage = 0
+
+	property integer hitCount = 0
+
+	property number hitInterval = 0
+
+	property string animation = ""
+
+	property string targetType = ""
+
+	property string skillIconHighlightRUID = ""
+
+	property string skillId = ""
+
+	property string hitSFX = ""
+
+	property string activationSFX = ""
+
+	property integer maxTargetCount = 0
+
+	method SkillBuilder WithIcon(string skillIconActiveRUID, string skillIconInactiveRUID, string skillIconHighlightRUID)
+		self.skillIconActiveRUID = skillIconActiveRUID
+		self.skillIconInactiveRUID = skillIconInactiveRUID
+		self.skillIconHighlightRUID = skillIconHighlightRUID
+		return self
+	end
+
+	method SkillBuilder withActivationEffectRUIDs(string attackEffectRUIDs)
+		local ids = _UtilLogic:Split(attackEffectRUIDs, "_")
+		self.activationEffectRUIDs = ids
+		return self
+	end
+
+	method SkillBuilder withTargetEffectRUIDs(string targetEffectRUIDs)
+		local ids = _UtilLogic:Split(targetEffectRUIDs, "_")
+		self.targetEffectRUIDs = ids
+		return self
+	end
+
+	method SkillBuilder withCooldown(number cooldown)
+		self.cooldown = cooldown
+		return self
+	end
+
+	method SkillBuilder withDamage(number damage)
+		self.damage = damage
+		return self
+	end
+
+	method SkillBuilder withHitCount(integer hitCount, number hitInterval)
+		self.hitCount = hitCount
+		self.hitInterval = hitInterval
+		return self
+	end
+
+	method SkillBuilder withAnimation(string animation)
+		self.animation = animation
+		return self
+	end
+
+	method Skill Build()
+		local skill = Skill()
+		return skill:Build(self)
+	end
+
+	method SkillBuilder withTargetingType(string type)
+		self.targetType = type
+		return self
+	end
+
+	method SkillBuilder WithId(string skillId)
+		self.skillId = skillId
+		return self
+	end
+
+	method SkillBuilder WithActivationSFX(string activationSFX)
+		self.activationSFX = activationSFX
+		return self
+	end
+
+	method SkillBuilder WithHitSFX(string hitSFX)
+		self.hitSFX = hitSFX
+		return self
+	end
+
+	method SkillBuilder WithMaxTargetCount(integer maxTargetCount)
+		self.maxTargetCount = maxTargetCount
+		return self
+	end
+
+end

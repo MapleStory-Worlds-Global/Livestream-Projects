@@ -1,0 +1,60 @@
+@Struct
+script ComboForce extends Skill
+
+	method void OnTrigger(Entity context)
+		__base:OnTrigger(context)
+		local attack = context.PlayerAttack
+		
+		local effect = self.activationEffectRUIDs[1]
+		
+		context.PlayerControllerComponent.Enable = false
+		
+		local facingDir = -context.PlayerControllerComponent.LookDirectionX
+		_EffectService:PlayEffectAttached(effect, context, Vector3.zero, 0, Vector3(facingDir, 1, 1), false)
+		
+		_SoundService:PlaySoundAtPos(self.activationSFX, context.TransformComponent.Position, context, 1)
+		
+		local anim = context.PlayerAnimationComponent
+		anim:PlayImmediatly(self.animation, 1, 0, 1000)
+		
+		_SpriteUtils:WaitForFrames(effect, 1, 3, function()
+			local spriteInfo = _SpriteUtils:GetSpriteSize(effect, Vector2.one/2, 3)
+			local offset = spriteInfo["OFFSET"]
+			local attackData = {
+				["HitEffect"] = self.targetEffectRUIDs,
+				["MaxTargets"] = self.maxTargetCount,
+				["HitCount"] = self.hitCount,
+				["HitSFX"] = self.hitSFX
+			}
+			attack:AttackNormal(self.damage * self.hitCount, spriteInfo["SIZE"], Vector2(math.abs(offset.x), math.abs(offset.y)), attackData, function(target)
+				self:AttackEnemy(context, target)
+			end)
+		end)
+		
+		_SpriteUtils:WaitForFrames(effect, 1, 7, function()
+			self:OnSkillComplete()
+			context.PlayerControllerComponent.Enable = true
+		end)
+	end
+
+	method void AttackEnemy(Entity context, Entity target)
+		local facingDir = -context.PlayerControllerComponent.LookDirectionX
+		local pullPos = context.TransformComponent.Position + (Vector3(1 * -facingDir, .4, 0) )
+		
+		target.AIWanderComponent.Enable = false
+		target.RigidbodyComponent.Enable = false
+		local originalPosition = target.TransformComponent.Position
+		local dist = pullPos - originalPosition
+		
+		--target.TransformComponent.Position = pullPos
+		local tweenCallback = function (tweenValue)
+			target.TransformComponent.Position = originalPosition + tweenValue
+		end
+		
+		_TweenLogic:PlayTween(Vector3.zero, dist, .1, EaseType.QuadEaseIn, tweenCallback):SetOnEndCallback(function()
+			target.AIWanderComponent.Enable = true
+			target.RigidbodyComponent.Enable = true
+		end)
+	end
+
+end

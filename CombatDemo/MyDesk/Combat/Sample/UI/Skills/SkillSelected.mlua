@@ -1,0 +1,6 @@
+@Event
+script SkillSelected extends EventType
+
+	property string skillId = ""
+
+end

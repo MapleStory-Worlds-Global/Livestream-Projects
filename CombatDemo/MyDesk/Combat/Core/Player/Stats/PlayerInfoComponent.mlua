@@ -1,0 +1,78 @@
+@Component
+script PlayerInfoComponent extends Component
+
+	property any stats = nil
+
+	property number hp = 50
+
+	property number mp = 50
+
+	@Sync
+	property number level = 20
+
+	method void OnBeginPlay()
+		
+	end
+
+	method integer GetAttackPower()
+		return self.stats:CalcDamage()
+	end
+
+	@ExecSpace("Server")
+	method void SetHp(number hp)
+		self.Entity.PlayerComponent.MaxHp = hp
+		self.Entity.PlayerComponent.Hp = hp
+	end
+
+	@ExecSpace("Server")
+	method void LevelUp()
+		self.stats:LevelUp() 
+		self.level = self.stats.level
+		self:SetHp(self.stats.hp)
+		self.Entity.PlayerComponent.Hp = self.stats.hp
+		
+		local effectRUID = "486a0ba11a6c474a81d13641876f8808"
+		_EffectService:PlayEffectAttached(effectRUID, self.Entity, Vector3.up * .7, 0, Vector3.one, false)
+	end
+
+	@ExecSpace("Server")
+	method void IncreaseStats(integer index, number value)
+		self.stats:IncreaseStat(index,value)
+		self:SendStatUpdateEvt(index, self.stats:GetStat(index))
+	end
+
+	@ExecSpace("Client")
+	method void SendStatUpdateEvt(integer index, number finalValue)
+		local evt = PlayerStatsUpdate()
+		evt.index = index
+		evt.finalValue = finalValue
+		
+		self.Entity:SendEvent(evt)
+	end
+
+	method PlayerStats GetStats()
+		return self.stats
+	end
+
+	method void OnInitialize()
+		local stats = PlayerStats()
+		stats:Init(self.Entity)
+		self.stats = stats
+		
+		--self:InitClient(stats)
+		
+		if(self:IsServer()) then 
+			self:SetHp(stats.hp)
+		end
+	end
+
+	@EventSender("Self")
+	handler HandlePlayerStatIncreased(PlayerStatIncreased event)
+		-- Parameters
+		local increaseIndex = event.increaseIndex
+		local increaseValue = event.increaseValue
+		---------------------------------------------------------
+		self:IncreaseStats(increaseIndex, increaseValue)
+	end
+
+end

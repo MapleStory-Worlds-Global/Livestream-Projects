@@ -1,0 +1,38 @@
+@Struct
+script RagingBlow extends Skill
+
+	method void OnTrigger(Entity context)
+		__base:OnTrigger(context)
+		local attack = context.PlayerAttack
+		
+		local effect = self.activationEffectRUIDs[1]
+		
+		context.PlayerControllerComponent.Enable = false
+		
+		local facingDir = -context.PlayerControllerComponent.LookDirectionX
+		_EffectService:PlayEffectAttached(effect, context, Vector3.zero, 0, Vector3(facingDir, 1, 1), false)
+		
+		_SoundService:PlaySoundAtPos(self.activationSFX, context.TransformComponent.Position, context, 1)
+		
+		local anim = context.PlayerAnimationComponent
+		anim:PlayImmediatly(self.animation, 1, 0, 1000)
+		
+		_SpriteUtils:WaitForFrames(effect, 1, 3, function()
+			local spriteInfo = _SpriteUtils:GetSpriteSize(effect, Vector2.one/2, 12)
+			local offset = spriteInfo["OFFSET"]
+			local attackData = {
+				["HitEffect"] = self.targetEffectRUIDs,
+				["MaxTargets"] = self.maxTargetCount,
+				["HitCount"] = self.hitCount,
+				["HitSFX"] = self.hitSFX
+			}
+			attack:AttackNormal(self.damage * self.hitCount, spriteInfo["SIZE"], Vector2(math.abs(offset.x), math.abs(offset.y)), attackData, nil)
+		end)
+		
+		_SpriteUtils:WaitForFrames(effect, 1, 13, function()
+			self:OnSkillComplete()
+			context.PlayerControllerComponent.Enable = true
+		end)
+	end
+
+end

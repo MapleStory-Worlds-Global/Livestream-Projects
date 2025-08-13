@@ -1,0 +1,63 @@
+@Component
+script StatWindowUIComponent extends Component
+
+	property table stats = {}
+
+	property integer increaseValue = 5
+
+	@ExecSpace("ClientOnly")
+	method void OnBeginPlay()
+		local closeButton = self.Entity:GetChildByName("CloseButton")
+		closeButton:ConnectEvent(ButtonClickEvent, self.Close)
+		
+		local playerInfo = _UserService.LocalPlayer.PlayerInfoComponent
+		self:Init(playerInfo:GetStats():GetStats())
+	end
+
+	method void Init(table stats)
+		local statWin = self.Entity:GetChildByName("StatWindow")
+		local playerStat = statWin:GetChildByName("PlayerStat")
+		for i=1, _PlayerStatsEnum.MAX-1 do
+			local index = i
+			local stat = playerStat:GetChildByName("STAT_" .. index).StatsWindowUIItem
+			stat:SetText(stats[i])
+			stat:SetListener(function()
+				self:OnUpgradeStat(index)
+			end)
+			
+			self.stats[i] = stat
+		end
+	end
+
+	method void Open()
+		self.Entity:SetEnable(true)
+	end
+
+	method void Close()
+		self.Entity:SetEnable(false)
+	end
+
+	method void OnUpgradeStat(integer index)
+		local localPlayer = _UserService.LocalPlayer
+		local evt = PlayerStatIncreased()
+		evt.increaseIndex = index
+		evt.increaseValue = 5
+		
+		localPlayer:SendEvent(evt)
+	end
+
+	@ExecSpace("Client")
+	method void UpdateStat(integer index, number value)
+		self.stats[index]:SetText(value)
+	end
+
+	@EventSender("LocalPlayer")
+	handler HandlePlayerStatsUpdate(PlayerStatsUpdate event)
+		-- Parameters
+		local index = event.index
+		local finalValue = event.finalValue
+		---------------------------------------------------------
+		self:UpdateStat(index, finalValue)
+	end
+
+end

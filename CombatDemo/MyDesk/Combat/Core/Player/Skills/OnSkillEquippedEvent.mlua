@@ -1,0 +1,12 @@
+@Event
+script OnSkillEquippedEvent extends EventType
+
+	property string activeSkillRUID = ""
+
+	property string inactiveSkillRUID = ""
+
+	property string highlightSkillRUID = ""
+
+	property integer index = 0
+
+end

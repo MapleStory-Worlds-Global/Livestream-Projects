@@ -1,0 +1,151 @@
+@Component
+script PlayerAttack extends AttackComponent
+
+	property number power = 150
+
+	property Entity attackVisualizer = nil
+
+	property boolean visualizeAttack = false
+
+	property number targets = 0
+
+	@ExecSpace("Server")
+	method void AttackNormal(number power, Vector2 customShape, Vector2 offset, table msg, any onAttack)
+		local playerController = self.Entity.PlayerControllerComponent
+		local transform = self.Entity.TransformComponent
+		
+		if playerController and transform then
+			local worldPosition = transform.WorldPosition
+			local attackOffset = Vector2(worldPosition.x + offset.x * playerController.LookDirectionX, worldPosition.y + offset.y)
+			
+			local size = Vector2.one
+			if isvalid(customShape) then 
+				size = customShape
+			end
+			
+			self:VisualizeAttack(size, attackOffset)
+			
+			local shape = BoxShape(attackOffset, size, 0)
+			
+			local attackInfo = nil	
+			if isvalid(msg) then
+				msg.Power = power
+				attackInfo = _HttpService:JSONEncode(msg)
+			end
+			
+			self._T.onAttack = nil
+			if isvalid(onAttack) then 
+				self._T.onAttack = onAttack
+			end
+				
+			self.targets = 0
+			
+			self:AttackFast(shape, attackInfo, CollisionGroups.Monster)
+		end
+	end
+
+	method integer CalcDamage(Entity attacker, Entity defender, string attackInfo)
+		local damage = attacker.PlayerInfoComponent.stats:GetPower(defender.Monster.stats)
+		local finalDamage = damage
+		if isvalid(attackInfo) then 
+			local data = _HttpService:JSONDecode(attackInfo)
+			finalDamage = math.floor(damage * (data.Power/100)) 
+		else
+			finalDamage = math.floor(damage)
+		end
+		
+		if finalDamage > 0 then 
+			return finalDamage
+		else
+			return -1
+		end
+		
+	end
+
+	method boolean CalcCritical(Entity attacker, Entity defender, string attackInfo)
+		local critChance = attacker.PlayerInfoComponent.stats.critChance
+		return _UtilLogic:RandomDouble() < (_UtilLogic:RandomIntegerRange(0,critChance)/100)
+	end
+
+	method float GetCriticalDamageRate()
+		return 2
+	end
+
+	method void OnAttack(Entity defender)
+		if (isvalid(self._T.onAttack)) then 
+			self._T.onAttack(defender)
+		end
+		__base:OnAttack(defender)
+		self.targets += 1
+	end
+
+	method boolean IsAttackTarget(Entity defender, string attackInfo)
+		local isTarget = __base:IsAttackTarget(defender,attackInfo)
+		local playerStats = self.Entity.PlayerInfoComponent:GetStats() 
+		
+		local damage = playerStats:GetPower(defender.Monster.stats)
+		if damage == 0 then 
+			_DamageSkinService:PlayTextDamage(defender, self.Entity.DamageSkinSettingComponent.DamageSkinId.DataId, DamageSkinTextType.Miss, DamageSkinTweenType.Default)
+			return false 
+		end
+		
+		if isvalid(attackInfo) then 
+			local data = _HttpService:JSONDecode(attackInfo)
+			return isTarget and self.targets < data.MaxTargets 
+		end
+		return isTarget
+	end
+
+	@ExecSpace("Server")
+	method void OnSkillComplete()
+		log("SkillComplete")
+	end
+
+	@ExecSpace("Client")
+	method void VisualizeAttack(Vector2 size, Vector2 position)
+		if not self.visualizeAttack then return end
+		local evt = EntityEnabledInHierarchyChangedEvent()
+		evt.EnabledInHierarchy = true
+		self.attackVisualizer:SendEvent(evt)
+		self.attackVisualizer.TriggerComponent.BoxSize = size
+		self.attackVisualizer.TransformComponent.Position = position:ToVector3()
+		wait(1)
+		evt.EnabledInHierarchy = false
+		self.attackVisualizer:SendEvent(evt)
+	end
+
+	@ExecSpace("ClientOnly")
+	method void OnBeginPlay()
+		if self.visualizeAttack then 
+			self.attackVisualizer = _SpawnService:SpawnByModelId("model://transformonly", "Attack Visualizer", Vector3.zero, self.Entity.CurrentMap)
+			self.attackVisualizer:AddComponent(TriggerComponent)
+			--self.attackVisualizer:SetEnable(false)
+			local visualizer = self.attackVisualizer:AddComponent(ColliderVisualizer)
+			visualizer.LineColor = Color.green
+		end
+		
+	end
+
+	method int32 GetDisplayHitCount(string attackInfo)
+		local hitCount = 1
+		if isvalid(attackInfo) then 
+			local data = _HttpService:JSONDecode(attackInfo)
+			hitCount = data.HitCount
+		end
+		return hitCount 
+	end
+
+	@ExecSpace("ServerOnly")
+	@EventSender("Self")
+	handler HandlePlayerActionEvent(PlayerActionEvent event)
+		-- Parameters
+		local ActionName = event.ActionName
+		-- local PlayerEntity = event.PlayerEntity
+		--------------------------------------------------------
+		
+		if ActionName == "Attack" then
+			self:AttackNormal(self.power, nil, Vector2(0.5,0.5), nil, nil)
+		end
+	end
+
+end

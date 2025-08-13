@@ -1,0 +1,6 @@
+@Event
+script HealthBarUpdate extends EventType
+
+	property number health = 0
+
+end

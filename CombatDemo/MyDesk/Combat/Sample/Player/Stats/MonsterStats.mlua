@@ -1,0 +1,70 @@
+@Struct
+script MonsterStats extends CharacterStats
+
+	method void Init(Entity context)
+		local monster = context.Monster
+		self.level = monster.level
+		self:CalculateHP()
+	end
+
+	method void CalculateHP()
+		self.hp = self:GetBaselineHP() * self:GetLevelMultipliers() 
+	end
+
+	method integer GetBaselineHP()
+		local level = self.level
+		if level <= 3 then
+			return 5 * level + 10 
+		elseif level <= 10 then
+			return 15 * level - 25
+		elseif level <= 20 then
+			return 25 * level - 125
+		elseif level <= 25 then 
+			return 30 * level - 225
+		elseif level <= 29 then 
+			return 70 * level - 1240
+		elseif level <= 31 then 
+			return 90 * level - 1800
+		elseif level <= 45 then 
+			return 100 * level - 2100
+		elseif level <= 50 then 
+			return 120 * level - 3000
+		elseif level <= 55 then 
+			return 200 * level - 7000
+		elseif level <= 60 then 
+			return 300 * level - 12500
+		elseif level <= 65 then 
+			return 400 * level - 18500
+		elseif level <= 70 then 
+			return 500 * level - 25000
+		elseif level <= 75 then 
+			return 1000 * level - 60000
+		elseif level <= 125 then 
+			return 2000 * level - 135000
+		elseif level <= 127 then 
+			return 2000 * level - 134000
+		elseif level <= 150 then 
+			return 5000 * level - 515000
+		elseif level <= 180 then 
+			return 10000 * level - 1270000
+		else
+			return 20000 * level - 3070000
+		end
+	end
+
+	method number GetLevelMultipliers()
+		local level = self.level
+		if level <= 29 then 
+			return 1
+		elseif level <= 100 then 
+			return 2
+		elseif level <= 109 then 
+			return 0.01 * math.floor((level * level) / 50)
+		elseif level <= 159 then 
+			return 0.015 * math.floor((level * level) / 50)
+		else
+			return 0.02 * math.floor((level * level) / 50)
+		end
+	end
+
+end

@@ -1,0 +1,12 @@
+@Logic
+script SkillsEnum extends Logic
+
+	property string HERO_RAGINGBLOW = "hero_ragingblow"
+
+	property string HERO_COMBOFORCE = "hero_comboforce"
+
+	property string HERO_INCISING = "hero_incising"
+
+	property string HERO_WARRIORLEAP = "hero_warriorleap"
+
+end

@@ -1,0 +1,42 @@
+@Logic
+script DebugLogic extends Logic
+
+	property string uiPath = "/ui/CombatDemo"
+
+	method void OpenStatWindow()
+		self._T.playerStatWindow:Open()
+	end
+
+	method void OnBeginPlay()
+		if self:IsClient() then
+			local uiParent = _EntityService:GetEntityByPath(self.uiPath)
+			self._T.playerStatWindow = _SpawnService:SpawnByModelId("model://c79e1a1b-36ea-48e7-b9be-568e9e7ffba7", "PlayerStatWindow", Vector3.zero, uiParent).StatWindowUIComponent
+			self._T.playerSkillWindow = _SpawnService:SpawnByModelId("model://5b4cb569-ce96-4475-b0b3-0ff4b7389d10", "PlayerSkillWindow",  Vector3.zero, uiParent).SkillWindowComponent
+		end
+		
+	end
+
+	@ExecSpace("Server")
+	method void LevelUpPlayer(string id)
+		local player = _UserService:GetUserEntityByUserId(id)
+		player.PlayerInfoComponent:LevelUp()
+	end
+
+	@EventSender("Service", "InputService")
+	handler HandleKeyDownEvent(KeyDownEvent event)
+		--------------- Native Event Sender Info ----------------
+		-- Sender: InputService
+		-- Space: Client
+		---------------------------------------------------------
+		
+		-- Parameters
+		local key = event.key
+		---------------------------------------------------------
+		if key == KeyboardKey.F1 then 
+			self:OpenStatWindow()
+		elseif key == KeyboardKey.F2 then 
+			self:LevelUpPlayer(_UserService.LocalPlayer.PlayerComponent.UserId)
+		end
+	end
+
+end

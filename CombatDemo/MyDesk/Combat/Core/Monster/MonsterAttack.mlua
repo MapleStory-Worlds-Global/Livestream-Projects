@@ -1,0 +1,84 @@
+@Component
+script MonsterAttack extends AttackComponent
+
+	@MinValue(0)
+	property number AttackInterval = 0.03
+
+	@HideFromInspector
+	property any Shape = nil
+
+	@HideFromInspector
+	property Vector2 SpriteSize = Vector2(0,0)
+
+	@HideFromInspector
+	property Vector2 PositionOffset = Vector2(0,0)
+
+	@ExecSpace("ServerOnly")
+	method void OnBeginPlay()
+		local monster = self.Entity.Monster
+		if not monster then
+			return
+		end
+		
+		self.Shape = BoxShape(Vector2.zero, Vector2.one, 0)
+			local spriteInfo = _SpriteUtils:GetSpriteSize(self.Entity.SpriteRendererComponent.SpriteRUID, Vector2(0.5, 0.5), 1)
+			self.SpriteSize = spriteInfo["SIZE"]
+			self.PositionOffset = spriteInfo["OFFSET"]
+			
+			_TimerService:SetTimerRepeat(function() 
+				if monster.IsDead == false then
+					self:AttackNear()
+				end
+			end, self.AttackInterval)
+	end
+
+	method void AttackNear()
+		local transformComponent = self.Entity.TransformComponent
+		
+		if isvalid(transformComponent) then
+			local worldPosition = transformComponent.WorldPosition
+			local scaleX = transformComponent.Scale.x
+			local scaleY = transformComponent.Scale.y
+			local offset = _MathUtils:RotatePointAroundZRotation(self.PositionOffset, transformComponent)
+			
+			self.Shape.Size = Vector2(self.SpriteSize.x * math.abs(scaleX), self.SpriteSize.y * math.abs(scaleY))
+			self.Shape.Position = Vector2(worldPosition.x + offset.x, worldPosition.y + offset.y)
+			self.Shape.Angle = transformComponent.ZRotation
+		end
+		
+		self:AttackFast(self.Shape, nil, CollisionGroups.Player)
+	end
+
+	method boolean IsAttackTarget(Entity defender, string attackInfo)
+		local monster = self.Entity.Monster
+		local monsterAtt = monster.Power
+		
+		--local finalDamage = defender.PlayerInfoComponent.stats:GetDamage(monster.stats.level, monsterAtt)
+		--
+		--log("FinalDamage: " .. finalDamage)
+		--if finalDamage <= 0 then 
+		--    _DamageSkinService:PlayTextDamage(defender, defender.DamageSkinSettingComponent.DamageSkinId.DataId, DamageSkinTextType.Miss, DamageSkinTweenType.Default)
+		--    return false
+		--end
+		
+		if isvalid(defender.PlayerComponent) == false then
+			return false
+		end
+		
+		return __base:IsAttackTarget(defender, attackInfo)
+	end
+
+	method integer CalcDamage(Entity attacker, Entity defender, string attackInfo)
+		local monster = self.Entity.Monster
+		local monsterAtt = monster.Power
+		
+		local finalDamage = defender.PlayerInfoComponent.stats:GetDamage(attacker.Monster.stats.level, monsterAtt)
+		
+		if finalDamage > 0 then 
+			return finalDamage
+		else
+			return -1
+		end
+	end
+
+end

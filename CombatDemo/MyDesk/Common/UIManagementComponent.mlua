@@ -1,0 +1,45 @@
+@Component
+script UIManagementComponent extends Component
+
+	property Entity clientServerLog = "81b7a3f4-eb0a-4f4e-8bbe-80e7ccb74cde"
+
+	property Entity InventorySystem = "351f3cfe-97ff-4eca-b642-c3f1f27b5a44"
+
+	property Entity CombatDemo = "450ee7fc-5834-4d53-b5a6-802d3d70675b"
+
+	property Entity MyDeskDemo = "cdfc7534-fe30-4f7a-95d7-7a99ee307803"
+
+	property Entity UIDemo = "71190881-8fcc-4970-93be-c2cc74e37d5b"
+
+	@ExecSpace("ClientOnly")
+	method void OnBeginPlay()
+		local mapName = _UserService.LocalPlayer.CurrentMapName
+		self:Show(mapName)
+	end
+
+	@ExecSpace("Client")
+	method void ClearUI()
+		self.clientServerLog:SetEnable(false)
+		self.InventorySystem:SetEnable(false)
+		self.CombatDemo:SetEnable(false)
+		self.MyDeskDemo:SetEnable(false)
+		self.UIDemo:SetEnable(false)
+	end
+
+	@ExecSpace("Client")
+	method void Show(string uiGroup)
+		self:ClearUI() 
+		if uiGroup == "ClientServerLog" then
+			self.clientServerLog:SetEnable(true)
+		elseif uiGroup == "InventorySystem" then
+			self.InventorySystem:SetEnable(true)
+		elseif uiGroup == "CombatDemo" then
+			self.CombatDemo:SetEnable(true)
+		elseif uiGroup == "MyDeskDemo" then 
+			self.MyDeskDemo:SetEnable(true)
+		elseif uiGroup == "UIDemo" then 
+			self.UIDemo:SetEnable(true)
+		end
+	end
+
+end

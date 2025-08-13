@@ -1,0 +1,41 @@
+@Struct
+script WarriorLeap extends Skill
+
+	property number force = 0
+
+	method void OnTrigger(Entity context)
+		context.PlayerSkillComponent:ClientUseSkill(self)
+	end
+
+	method void ClientTrigger(Entity context)
+		local rb = context.RigidbodyComponent
+		
+		if rb:IsOnGround() then return end
+		
+		local facingDir = context.PlayerControllerComponent.LookDirectionX
+		
+		local effect = self.activationEffectRUIDs[1]
+		
+		
+		local force = Vector2(3 * facingDir, 4) 
+		
+		log("Test")
+		local isUp = _InputManager:Contains(KeyboardKey.W)
+		--local isHorizontal = _InputManager:Contains(KeyboardKey.D) or _InputManager:Contains(KeyboardKey.A)
+		
+		
+		local rotation = 0
+		if isUp then 
+			force.x = 0
+			force.y = 10
+			rotation = 90
+		end
+		
+		
+		_EffectService:PlayEffect(effect, context, context.TransformComponent.Position, rotation, Vector3(-facingDir, 1, 1), false)
+		
+		rb:SetForce(force)
+		self:OnSkillComplete()
+	end
+
+end

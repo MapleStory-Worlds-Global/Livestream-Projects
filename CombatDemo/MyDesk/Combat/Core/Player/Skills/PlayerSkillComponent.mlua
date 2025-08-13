@@ -1,0 +1,98 @@
+@Component
+script PlayerSkillComponent extends Component
+
+	property table skills = {}
+
+	property table selectedSkills = {}
+
+	property integer skillIndex = 1
+
+	@ExecSpace("Server")
+	method void LoadSkills()
+		local skillData = _DataService:GetTable("SkillData")
+		
+		for i = 1,skillData:GetRowCount() do
+			local row = skillData:GetRow(i)
+			local skill = _SkillFactory:CreateSkillWithData(row) 
+			self.skills[skill.skillId] = skill
+			
+			self:SendSkillInventoryUpdateEvent(skill)
+		end
+	end
+
+	@ExecSpace("ServerOnly")
+	method void OnBeginPlay()
+		--Get Access to common
+		self:LoadSkills()
+		self.skillIndex = 1
+	end
+
+	@ExecSpace("Server")
+	method void EquipSkill(string skillId)
+		---@type Skill
+		local skill = self.skills[skillId]
+		
+		skill.skillIndex = self.skillIndex
+		skill:Init(function()
+			self:OnSkillComplete(self.Entity)
+		end)
+		self.selectedSkills[self.skillIndex] = skill
+		self:SendSkillEquipEvent(skill, self.skillIndex)
+		self.skillIndex += 1
+	end
+
+	@ExecSpace("Server")
+	method void UseSkill(integer skillIndex)
+		local skill = self.selectedSkills[skillIndex]
+		if not isvalid(skill) then return end
+		
+		skill:OnTrigger(self.Entity)
+	end
+
+	method void OnSkillComplete(Entity player)
+		--Implement post skill complition logic here. 
+	end
+
+	@ExecSpace("Client")
+	method void SendSkillEquipEvent(Skill skill, integer index)
+		local evt = OnSkillEquippedEvent()
+		evt.activeSkillRUID = skill.skillIconActiveRUID
+		evt.inactiveSkillRUID = skill.skillIconInactiveRUID
+		evt.highlightSkillRUID = skill.skillIconHighlightRUID
+		evt.index = index
+		self.Entity:SendEvent(evt)
+	end
+
+	@ExecSpace("Client")
+	method void SendSkillInventoryUpdateEvent(Skill skill)
+		--TODO: Send an event instead of directly referencing UI Entity. 
+		local evt = SkillInventoryUpdatedEvent()
+		evt.iconRUID = skill.skillIconActiveRUID
+		evt.skillId = skill.skillId
+		self.Entity:SendEvent(evt)
+	end
+
+	@ExecSpace("Client")
+	method void ClientUseSkill(Skill skill)
+		skill:Init(function()
+			self:OnSkillComplete(self.Entity)
+		end)
+		skill:ClientTrigger(self.Entity)
+	end
+
+	@EventSender("Self")
+	handler HandleSkillUsedEvent(SkillUsedEvent event)
+		local skillId = event.skillId
+		
+		self:UseSkill(skillId)
+	end
+
+	@EventSender("Self")
+	handler HandleSkillSelected(SkillSelected event)
+		-- Parameters
+		local skillId = event.skillId
+		---------------------------------------------------------
+		self:EquipSkill(skillId)
+	end
+
+end

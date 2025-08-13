@@ -1,0 +1,8 @@
+@Event
+script PlayerStatsUpdate extends EventType
+
+	property integer index = 0
+
+	property number finalValue = 0
+
+end

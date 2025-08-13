@@ -1,0 +1,24 @@
+@Component
+script PlayerAnimationComponent extends Component
+
+	@ExecSpace("Client")
+	method void PlayImmediatly(string actionName, number playRate, integer startFrame, integer endFrame)
+		---@type ActionStateChangedEvent
+		local event = self._T.tempEvent
+		event.CoreActionName = actionName
+		event.PartsActionName = actionName
+		event.PlayRate = playRate
+		event.PlayType = SpriteAnimClipPlayType.Onetime
+		event.StartFrameIndex = startFrame
+		event.EndFrameIndex = endFrame
+		
+		local body = self.Entity.AvatarRendererComponent:GetBodyEntity()
+		body:SendEvent(event)
+	end
+
+	@ExecSpace("ClientOnly")
+	method void OnBeginPlay()
+		self._T.tempEvent = ActionStateChangedEvent()
+	end
+
+end

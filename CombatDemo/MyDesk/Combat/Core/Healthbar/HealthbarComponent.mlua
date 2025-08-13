@@ -1,0 +1,52 @@
+@Component
+script HealthbarComponent extends Component
+
+	property string healthBar = "model://e1b5c661-4d26-4f88-9002-fa1fb0c8c662"
+
+	property Vector2 offset = Vector2(0.5,0.7)
+
+	@ExecSpace("Client")
+	method void Init(number maxHealth)
+		local spriteRen = self.Entity.SpriteRendererComponent
+		local hBar = nil
+		if isvalid(spriteRen) then
+			local spriteInfo = _SpriteUtils:GetSpriteSize(spriteRen.SpriteRUID, self.offset, 1)
+			local offset = spriteInfo["OFFSET"]:ToVector3()
+			hBar = _SpawnService:SpawnByModelId(self.healthBar, "HealthBar", offset, self.Entity)
+		else
+			hBar = _SpawnService:SpawnByModelId(self.healthBar, "HealthBar", self.offset:ToVector3(), self.Entity)
+		end 
+		self._T.healthBar = hBar
+		self._T.fill = hBar:GetChildByName("Fill"):GetComponent(SpriteGUIRendererComponent)
+		self._T.maxHealth = maxHealth
+		
+		self:ServerInit()
+		
+	end
+
+	@ExecSpace("Server")
+	method void ServerInit()
+		self.Entity:ConnectEvent(HealthBarUpdate, self.OnUpdateHealthBar)
+	end
+
+	@ExecSpace("Client")
+	method void Set(number health)
+		local healthPct = health / self._T.maxHealth
+		self._T.fill.FillAmount = healthPct 
+	end
+
+	@ExecSpace("ClientOnly")
+	method void OnUpdate(number delta)
+		if self._T.healthBar == nil then
+		    return
+		end
+		
+		self._T.healthBar.UITransformComponent.Scale.x = self.Entity.TransformComponent.Scale.x
+	end
+
+	@ExecSpace("Server")
+	method void OnUpdateHealthBar(HealthBarUpdate evt)
+		self:Set(evt.health)
+	end
+
+end

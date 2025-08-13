@@ -1,0 +1,8 @@
+@Event
+script SkillInventoryUpdatedEvent extends EventType
+
+	property string iconRUID = ""
+
+	property string skillId = ""
+
+end

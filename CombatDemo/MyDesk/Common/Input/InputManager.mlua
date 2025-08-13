@@ -1,0 +1,105 @@
+@Logic
+script InputManager extends Logic
+
+	property table inputBuffer = {}
+	property boolean isReady = false
+
+	@ExecSpace("Client")
+	method void HandleKeyPress(string key)
+		local action = self._T.keybinds[key]
+		if not isvalid(action) then return end
+		
+		local localPlayer = _UserService.LocalPlayer
+		
+		if not localPlayer.PlayerControllerComponent.Enable then return end
+		
+		local evt = SkillUsedEvent()
+		
+		if action == "skill_1" then 
+			evt.skillId = 1
+		elseif action == "skill_2" then
+			 evt.skillId = 2
+		elseif action == "skill_3" then
+			evt.skillId = 3
+		end
+		
+		
+		localPlayer:SendEvent(evt)
+	end
+
+	@ExecSpace("ClientOnly")
+	method void OnBeginPlay()
+		self._T.keybinds = {}
+		self:LoadKeybinds()
+		
+		self._T.inputBuffer = CircularBuffer()
+		self._T.inputBuffer:Init(10)
+		self.isReady = true
+	end
+
+	method void LoadKeybinds()
+		local data = _DataService:GetTable("KeybindsData")
+		for i = 1, data:GetRowCount() do
+			local row = data:GetRow(i)
+			self._T.keybinds[row:GetItem("Keybind")] = row:GetItem("id")
+		end
+	end
+
+	@ExecSpace("Client")
+	method void AddToBuffer(string key)
+		---@type CircularBuffer
+		local buffer = self._T.inputBuffer
+		buffer:Add(key)
+	end
+
+	@ExecSpace("Client")
+	method void RemoveFromBuffer(string key)
+		---@type CircularBuffer
+		local buffer = self._T.inputBuffer
+		buffer:Remove(key)
+	end
+
+	@ExecSpace("Client")
+	method boolean Contains(any key)
+		---@type CircularBuffer
+		local buffer = self._T.inputBuffer
+		return buffer:Contains(tostring(key))
+	end
+
+	@EventSender("Service", "InputService")
+	handler HandleKeyDownEvent(KeyDownEvent event)
+		--------------- Native Event Sender Info ----------------
+		-- Sender: InputService
+		-- Space: Client
+		---------------------------------------------------------
+		
+		-- Parameters
+		local key = event.key
+		--------------------------------------------------------
+
+		if self.isReady == false then
+			return
+		end
+		self:AddToBuffer(tostring(key))
+		self:HandleKeyPress(tostring(key))
+	end
+
+	@EventSender("Service", "InputService")
+	handler HandleKeyUpEvent(KeyUpEvent event)
+		--------------- Native Event Sender Info ----------------
+		-- Sender: InputService
+		-- Space: Client
+		---------------------------------------------------------
+		
+		-- Parameters
+		local key = event.key
+		---------------------------------------------------------
+
+		if self.isReady == false then
+			return
+		end
+		
+		self:RemoveFromBuffer(tostring(key))
+	end
+
+end

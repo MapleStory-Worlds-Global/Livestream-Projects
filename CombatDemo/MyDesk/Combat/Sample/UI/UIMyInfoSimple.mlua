@@ -1,0 +1,39 @@
+@Component
+script UIMyInfoSimple extends Component
+
+	property TextComponent myName = nil
+
+	property TextComponent myHPText = nil
+
+	property SliderComponent myHP = nil
+
+	property TextComponent myLevel = "aa433d63-2e77-4e7e-ba95-f8b39e62432f"
+
+	@ExecSpace("ClientOnly")
+	method void OnBeginPlay()
+		local currentPath = self.Entity.Path
+		self.myName = _EntityService:GetEntityByPath(currentPath .. "/Text_name").TextComponent
+		self.myHP = _EntityService:GetEntityByPath(currentPath .. "/HP_bar").SliderComponent
+		self.myHPText = _EntityService:GetEntityByPath(currentPath .. "/HP_bar/Text_HP").TextComponent
+		self.myLevel = _EntityService:GetEntityByPath(currentPath .. "/Text_Level").TextComponent
+		self._T.pc = _UserService.LocalPlayer.PlayerComponent
+		self._T.pic = _UserService.LocalPlayer.PlayerInfoComponent
+	end
+
+	@ExecSpace("ClientOnly")
+	method void OnUpdate(number delta)
+		if _UserService.LocalPlayer == nil then
+			return
+		end
+		local player = self._T.pc
+		local info = self._T.pic
+		if player == nil then
+			return
+		end
+		self.myName.Text = player.Nickname
+		self.myHP.Value = player.Hp / player.MaxHp
+		self.myHPText.Text = string.format("%d/%d", player.Hp, player.MaxHp)
+		self.myLevel.Text = "LV." .. info.level
+	end
+
+end

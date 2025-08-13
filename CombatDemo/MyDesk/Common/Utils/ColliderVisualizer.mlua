@@ -1,0 +1,234 @@
+@Component
+script ColliderVisualizer extends Component
+
+	property number LineWidth = 0.2
+
+	property Color LineColor = Color(255,0,0,255)
+
+	@HideFromInspector
+	property any collider = nil
+
+	@HideFromInspector
+	property boolean isBoxOnly = false
+
+	@HideFromInspector
+	property Entity gizmoBody = nil
+
+	@HideFromInspector
+	property Entity gizmoAnchor = nil
+
+	@ExecSpace("ClientOnly")
+	method void OnUpdate(number delta)
+		if self:CheckInit() == false then
+			return
+		end
+		
+		local size, colliderType, offset, radius, polygonPoints, scale, absScale, rot
+		
+		if self.collider.IsLegacy == true then
+			colliderType = ColliderType.Box
+			size = self.collider.BoxSize
+			scale = Vector3.one
+			offset = self.collider.BoxOffset
+		elseif self.isBoxOnly == true then
+			colliderType = ColliderType.Box
+			size = self.collider.BoxSize
+			scale = self:GetLossyScale()
+			absScale = Vector2(math.abs(scale.x), math.abs(scale.y))
+			offset = self.collider.BoxOffset * scale
+			rot = self.Entity.TransformComponent.WorldZRotation
+			scale = absScale
+		else
+			colliderType = self.collider.ColliderType
+			scale = self:GetLossyScale()
+			absScale = Vector2(math.abs(scale.x), math.abs(scale.y))
+			offset = self.collider.ColliderOffset * scale
+			rot = self.Entity.TransformComponent.WorldZRotation
+			
+			if colliderType ==  ColliderType.Box then
+				size = self.collider.BoxSize
+				scale = absScale
+			elseif colliderType ==  ColliderType.Circle then
+				radius = self.collider.CircleRadius
+				local max = math.max(absScale.x, absScale.y)
+				scale = Vector2(max, max)
+			elseif colliderType ==  ColliderType.Polygon then
+				polygonPoints = self.collider.PolygonPoints
+			end
+		end
+		
+		if colliderType == ColliderType.Box then
+			self:DrawBox(size, self.LineColor, self.LineWidth, self.gizmoBody)
+		elseif colliderType == ColliderType.Circle then
+			self:DrawCircle(radius, 20, self.LineColor, self.LineWidth, self.gizmoBody)
+		elseif colliderType == ColliderType.Polygon then
+			self:DrawPolygon(polygonPoints, self.LineColor, self.LineWidth, self.gizmoBody)
+		end
+		
+		local gizmoAnchorTransform = self.gizmoAnchor.TransformComponent
+		local gizmoBodyTransform = self.gizmoBody.TransformComponent
+		
+		gizmoAnchorTransform.WorldPosition = self.Entity.TransformComponent.WorldPosition
+		gizmoBodyTransform.Position = offset:ToVector3()
+		gizmoAnchorTransform.WorldZRotation = rot
+		gizmoBodyTransform.Scale = Vector3(scale.x, scale.y, 1)
+	end
+
+	@ExecSpace("ClientOnly")
+	method void OnDestroy()
+		_EntityService:Destroy(self.gizmoBody)
+		_EntityService:Destroy(self.gizmoAnchor)
+	end
+
+	@ExecSpace("ClientOnly")
+	method boolean CheckInit()
+		if self.collider == nil then
+			self:FindCollider()
+		end
+		
+		if self.collider == nil then
+			return false
+		end
+		
+		if _EntityService:IsValid(self.gizmoAnchor) == true and _EntityService:IsValid(self.gizmoBody) == true then
+			return true
+		end
+		
+		_EntityService:Destroy(self.gizmoBody)
+		_EntityService:Destroy(self.gizmoAnchor)
+		self.gizmoAnchor = _SpawnService:SpawnByModelId("model://transformonly", "Collider (" .. self.Entity.Name .. ")", Vector3.zero, self.Entity.CurrentMap)
+		self.gizmoBody =_SpawnService:SpawnByModelId("model://transformonly", "body", Vector3.zero, self.gizmoAnchor)
+		self.gizmoBody:AddComponent(LineRendererComponent)
+		
+		return true
+	end
+
+	@ExecSpace("ClientOnly")
+	method void FindCollider()
+		self.collider = self.Entity:GetComponent(TriggerComponent)
+		if self.collider ~= nil then return end
+		
+		self.collider = self.Entity:GetComponent(HitComponent)
+		if self.collider ~= nil then return end
+		
+		self.collider = self.Entity:GetComponent(InteractionComponent)
+		if self.collider ~= nil then return end
+		
+		self.collider = self.Entity:GetComponent(PhysicsColliderComponent)
+		if self.collider ~= nil then return end
+		
+		self.collider = self.Entity:GetComponent(PortalComponent)
+		if self.collider ~= nil then
+			self.isBoxOnly = true
+			return
+		end
+		
+		self.collider = self.Entity:GetComponent(ClimbableComponent)
+		if self.collider ~= nil then
+			self.isBoxOnly = true
+			return
+		end
+	end
+
+	@ExecSpace("ClientOnly")
+	method void DrawBox(Vector2 size, Color color, number width, Entity gizmoEntity)
+		local lineRenderer = self.gizmoBody.LineRendererComponent
+		lineRenderer.Points:Clear()
+		lineRenderer.Loop = true
+		
+		local halfSize = size / 2
+		lineRenderer.Points:Add(LinePoint(Vector2(-halfSize.x, halfSize.y),color,width))
+		lineRenderer.Points:Add(LinePoint(Vector2(halfSize.x, halfSize.y),color,width))
+		lineRenderer.Points:Add(LinePoint(Vector2(halfSize.x, -halfSize.y),color,width))
+		lineRenderer.Points:Add(LinePoint(Vector2(-halfSize.x, -halfSize.y),color,width))
+	end
+
+	@ExecSpace("ClientOnly")
+	method void DrawCircle(number radius, integer vertexNum, Color color, number width, Entity gizmoEntity)
+		if vertexNum < 3 then
+			log_error ("The \'vertexNum\' should be greater than or equal to 3.")
+			return
+		end
+			 
+		local lineRenderer = gizmoEntity.LineRendererComponent
+		lineRenderer.Points:Clear()
+		lineRenderer.Loop = true
+			 
+		local delta = 360 / vertexNum
+			 
+		for i = 0, vertexNum - 1 do
+			local theta = math.rad(90 + delta * i)
+			local position = Vector2(math.cos(theta), math.sin(theta)) * radius
+			local point = LinePoint(position, color, width)	 
+			lineRenderer.Points:Add(point)
+		end
+	end
+
+	@ExecSpace("ClientOnly")
+	method void DrawPolygon(any polygonPoints, Color color, number width, Entity gizmoEntity)
+		local lineRenderer = gizmoEntity.LineRendererComponent
+		lineRenderer.Points:Clear()
+		lineRenderer.Loop = true
+		
+		for i, p in ipairs(polygonPoints) do
+			local position = p
+			local point = LinePoint(position, color, width)	 
+			lineRenderer.Points:Add(point)
+		end
+	end
+
+	@ExecSpace("ClientOnly")
+	method Vector2 GetLossyScale()
+		local lossyScale = Vector2.one
+		
+		if self.Entity.TransformComponent == nil then
+			return lossyScale
+		end
+		
+		local e = self.Entity
+		while e ~= nil and e.TransformComponent ~= nil do
+			local scale = e.TransformComponent.Scale
+			lossyScale.x *= scale.x
+			lossyScale.y *= scale.y
+			e = e.Parent
+		end
+		
+		return lossyScale
+	end
+
+	@ExecSpace("Client")
+	method void Show(boolean isEnabled)
+		
+	end
+
+	@EventSender("Self")
+	handler HandleEntityEnabledInHierarchyChangedEvent(EntityEnabledInHierarchyChangedEvent event)
+		--------------- Native Event Sender Info ----------------
+		-- Sender: MODEntity
+		-- Space: Server, Client
+		---------------------------------------------------------
+		
+		-- Parameters
+		local EnabledInHierarchy = event.EnabledInHierarchy
+		-- local Entity = event.Entity
+		---------------------------------------------------------
+		
+		self.gizmoAnchor.Enable = EnabledInHierarchy
+	end
+
+	@EventSender("Self")
+	handler HandleEntityVisibleInHierarchyChangedEvent(EntityVisibleInHierarchyChangedEvent event)
+		--------------- Native Event Sender Info ----------------
+		-- Sender: MODEntity
+		-- Space: Server, Client
+		---------------------------------------------------------
+		
+		-- Parameters
+		local VisibleInHierarchy = event.VisibleInHierarchy
+		-- local Entity = event.Entity
+		---------------------------------------------------------
+		
+		self.gizmoAnchor.Visible = VisibleInHierarchy
+	end
+
+end

@@ -1,0 +1,76 @@
+@Struct
+script Skill
+
+	property string skillIconActiveRUID = ""
+
+	property string skillIconInactiveRUID = ""
+
+	property string skillIconHighlightRUID = ""
+
+	property table activationEffectRUIDs = {}
+
+	property table targetEffectRUIDs = {}
+
+	property number cooldown = 0
+
+	property number damage = 0
+
+	property number hitCount = 0
+
+	property string animation = ""
+
+	property integer skillIndex = 0
+
+	property string skillId = ""
+
+	property string activationSFX = ""
+
+	property string hitSFX = ""
+
+	property integer maxTargetCount = 0
+
+	property integer level = 0
+
+	method Skill Build(SkillBuilder builder)
+		self.skillId = builder.skillId
+		self.skillIconActiveRUID = builder.skillIconActiveRUID
+		self.skillIconInactiveRUID = builder.skillIconInactiveRUID
+		self.skillIconHighlightRUID = builder.skillIconHighlightRUID
+		self.activationEffectRUIDs = builder.activationEffectRUIDs
+		self.targetEffectRUIDs = builder.targetEffectRUIDs
+		self.cooldown = builder.cooldown
+		self.damage = builder.damage
+		self.hitCount = builder.hitCount
+		self.animation = builder.animation 
+		self.hitSFX = builder.hitSFX
+		self.activationSFX = builder.activationSFX
+		self.maxTargetCount = builder.maxTargetCount
+		return self
+	end
+
+	method void Init(any onSkillComplete)
+		
+		self._T.onSkillComplete = onSkillComplete
+	end
+
+	method void OnTrigger(Entity context)
+		self._T.player = context
+	end
+
+	method void AttackEnemy(Entity context, Entity target)
+		
+	end
+
+	method boolean CanTargetEnemy()
+		return true
+	end
+
+	method void OnSkillComplete()
+		self._T.onSkillComplete()
+	end
+
+	method void ClientTrigger(Entity context)
+		
+	end
+
+end

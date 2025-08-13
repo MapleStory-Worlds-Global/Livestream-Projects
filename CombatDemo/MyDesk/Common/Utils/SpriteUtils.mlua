@@ -1,0 +1,108 @@
+@Logic
+script SpriteUtils extends Logic
+
+	property table AnimationsByRUID = {}
+
+	method table GetSpriteSize(string ruid, Vector2 offset, integer frame)
+		local spriteInfo = {}
+		local clip = _ResourceService:LoadAnimationClipAndWait(ruid)
+		local firstFrameSprite = clip.Frames[frame].FrameSprite
+		local firstSpriteSizeInPixel = Vector2(firstFrameSprite.Width, firstFrameSprite.Height)
+		local ppu = firstFrameSprite.PixelPerUnit
+		
+		spriteInfo["SIZE"] = firstSpriteSizeInPixel / ppu
+		spriteInfo["OFFSET"] = (Vector2(firstSpriteSizeInPixel.x * offset.x, firstSpriteSizeInPixel.y * offset.y) - firstFrameSprite.PivotPixel:ToVector2()) / ppu
+		
+		return spriteInfo
+	end
+
+	method void WaitForFrames(string ruid, number frameFrom, number frameTo, any onComplete)
+		local length = self:GetAnimationLength(ruid, frameFrom, frameTo)
+		
+		_TimerService:SetTimerOnce(onComplete, length)
+	end
+
+	method any GetAnimation(string ruid, boolean loadIfNotFound)
+		local animation = self.AnimationsByRUID[ruid]
+		
+		if animation == nil and loadIfNotFound then
+			-- If the animation wasn't preloaded then try loading it now and log a warning
+			log_warning("Animation with RUID " .. ruid .. " was not preloaded; Loading now...")
+			animation = _ResourceService:LoadAnimationClipAndWait(ruid)
+			
+			if animation == nil then
+				log_error("Failed to load animation with RUID " .. tostring(ruid))
+			else
+				-- Cache the animation so it doesn't need to be loaded again
+				self.AnimationsByRUID[ruid] = animation
+			end
+		end
+		
+		return animation
+	end
+
+	method integer GetAnimationFrameCount(string ruid)
+		if ruid == nil then
+			log_warning("Failed to get animation length; ruid is nil")
+			return 0
+		end
+		
+		if ruid == "" then
+			log_warning("Failed to get animation length; ruid is empty")
+			return 0
+		end
+		
+		local clip = self:GetAnimation(ruid, false)
+			
+		if clip ~= nil then
+			return clip.Frames.Count
+		end
+		
+		log_warning("Failed to find animation clip with RUID " .. ruid .. "; Returning 0")
+		
+		return 0
+	end
+
+	method number GetAnimationLength(string ruid, number frameFrom, number frameTo)
+		if ruid == nil then
+			log_warning("Failed to get animation length; ruid is nil")
+			return 0
+		end
+		
+		if ruid == "" then
+			log_warning("Failed to get animation length; ruid is empty")
+			return 0
+		end
+		
+		if frameFrom <= 0 then 
+			log_warning("Start Frame must be greater than 0")
+			return 0
+		end
+		
+		local length = 0
+		local clip = self:GetAnimation(ruid, true)
+			
+		if clip ~= nil then
+			if clip.PlayRate <= 0 then
+				log_warning("Play rate of animation with RUID " .. ruid .. " is not a positive number; Returning 0")
+				return 0
+			end
+			
+			if frameTo > clip.Frames.Count then
+				log_warning("FrameTo for " .. ruid .. " is greater than maximum frames. Setting to max frames") 
+				frameTo = clip.Frames.Count 
+			end
+			
+			for i=1, frameTo, 1 do
+				length += clip.Frames[i].Delay
+			end
+			
+			length /= clip.PlayRate
+		else
+			log_warning("Failed to find animation clip with RUID " .. ruid .. "; Returning 0")
+		end
+		
+		return length
+	end
+
+end

@@ -1,0 +1,14 @@
+@Logic
+script MathUtils extends Logic
+
+	method Vector2 RotatePointAroundZRotation(Vector2 point, TransformComponent transform)
+		local radian = math.rad(transform.ZRotation)
+		local scale = transform.Scale
+		local newPos = Vector2.zero
+		newPos.x = math.cos(radian) * point.x * scale.x - math.sin(radian) * point.y * scale.y
+		newPos.y = math.sin(radian) * point.x * scale.x + math.cos(radian) * point.y * scale.y
+		
+		return newPos
+	end
+
+end

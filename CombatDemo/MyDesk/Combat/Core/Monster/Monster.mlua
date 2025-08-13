@@ -1,0 +1,118 @@
+@Component
+script Monster extends Component
+
+	@Sync
+	property number MaxHp = 100
+
+	@Sync
+	property number Hp = 0
+
+	@Sync
+	@HideFromInspector
+	property boolean IsDead = false
+
+	@Sync
+	property number DestroyDelay = 0.6
+
+	@Sync
+	property number Power = 10
+
+	@Sync
+	property string dropModelID = "model://maplestoryitem$0039bd125ebb4666a5e6fb27842cfdc7"
+
+	property integer level = 1
+
+	property any stats = nil
+
+	method void OnBeginPlay()
+		local stats = MonsterStats()
+		stats:Init(self.Entity)
+		self.stats = stats
+		
+		self.MaxHp = stats.hp
+		self.Hp = self.MaxHp
+		if (isvalid(self.Entity.HealthbarComponent)) then
+			self._T.HealthBar = self.Entity.HealthbarComponent
+			self._T.HealthBar:Init(self.MaxHp)
+		end
+		
+		
+	end
+
+	@ExecSpace("ServerOnly")
+	method void Dead()
+		self.IsDead = true
+		local stateComponent = self.Entity.StateComponent
+		if stateComponent then
+			stateComponent:ChangeState("DEAD")
+		end
+		
+		local delayHide = function()
+			self.Entity:SetVisible(false)
+			self.Entity:SetEnable(false)
+		end
+		
+		_TimerService:SetTimerOnce(delayHide, self.DestroyDelay)
+	end
+
+	method void Respawn(Vector3 position)
+		self.Hp = self.MaxHp
+		self:UpdateHealth()
+		self.Entity.TransformComponent.Position = position
+	end
+
+	@ExecSpace("Client")
+	method void UpdateHealth()
+		if (isvalid(self._T.HealthBar)) then
+			local evt = HealthBarUpdate()
+			 evt.health = self.Hp
+			self._T.HealthBar.Entity:SendEvent(evt)
+		end
+	end
+
+	@ExecSpace("ServerOnly")
+	method void OnInitialize()
+		
+	end
+
+	@ExecSpace("ServerOnly")
+	@EventSender("Self")
+	handler HandleHitEvent(HitEvent event)
+		-- Parameters
+		local AttackCenter = event.AttackCenter
+		local AttackerEntity = event.AttackerEntity
+		-- local Damages = event.Damages
+		local Extra = event.Extra
+		-- local IsCritical = event.IsCritical
+		local TotalDamage = event.TotalDamage
+		--------------------------------------------------------
+		
+		local originalHp = self.Hp
+		self.Hp = self.Hp - TotalDamage
+		
+		
+		if (isvalid(Extra)) then
+			local data = _HttpService:JSONDecode(Extra)
+			for _,effect in ipairs(data.HitEffect) do
+				_EffectService:PlayEffectAttached(effect, self.Entity, Vector3.zero, 0, Vector3.one, false)
+			end
+			
+			if isvalid(data.HitSFX) then 
+				_SoundService:PlaySoundAtPos(data.HitSFX, AttackCenter:ToVector3(), AttackerEntity, 1)
+			end
+			
+		end
+		
+		if (isvalid(self._T.HealthBar)) then
+			local evt = HealthBarUpdate()
+			 evt.health = self.Hp
+			self._T.HealthBar.Entity:SendEvent(evt)
+		end
+		if self.Hp > 0 or originalHp <= 0 then
+			return	
+		end
+		
+		self:Dead()
+	end
+
+end

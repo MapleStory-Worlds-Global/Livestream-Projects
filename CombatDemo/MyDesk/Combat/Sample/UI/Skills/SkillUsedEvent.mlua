@@ -1,0 +1,6 @@
+@Event
+script SkillUsedEvent extends EventType
+
+	property integer skillId = 0
+
+end

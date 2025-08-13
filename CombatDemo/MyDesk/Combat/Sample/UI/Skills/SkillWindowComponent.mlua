@@ -1,0 +1,75 @@
+@Component
+script SkillWindowComponent extends Component
+
+	property Entity skillMenu = "4eedcd39-f1c2-4851-852f-d3ab278e3041"
+
+	property Entity buttonConfirm = "b3c06528-3c25-47de-bc06-87c4127c0b55"
+
+	property Entity buttonCancel = "06634193-3f19-410f-b3de-5053bb72f632"
+
+	property string selectedSkillId = ""
+
+	property table skills = {}
+
+	property string skillButtonModel = "model://52a851f9-caf8-4c67-a1b4-937e40f41ebf"
+
+	property integer spawnedSkills = 0
+
+	@ExecSpace("ClientOnly")
+	method void OnBeginPlay()
+		self.selectedSkillId = ""
+		self.buttonConfirm:ConnectEvent(ButtonClickEvent, self.OnConfirm)
+		self.buttonCancel:ConnectEvent(ButtonClickEvent, self.OnCancel)
+	end
+
+	method void Show(boolean enabled)
+		self.selectedSkillId = ""
+		self.skillMenu:SetEnable(enabled)
+	end
+
+	method void ApplySkill(string iconRUID, string skillId)
+		--Instantiate and Connect Button
+		self.spawnedSkills += 1
+		local skillScroll = self.skillMenu:GetChildByName("SkillScroll")
+		local skillButton = _SpawnService:SpawnByModelId(self.skillButtonModel, "Slot_" .. self.spawnedSkills, Vector3.zero, skillScroll)
+		
+		local ren = skillButton:GetChildByName("Icon").SpriteGUIRendererComponent
+		ren.ImageRUID = iconRUID
+		
+		local btn = skillButton:GetChildByName("Button")
+		btn:ConnectEvent(ButtonClickEvent, function()
+			self:SelectSkill(skillId)
+		end)
+	end
+
+	method void OnConfirm()
+		if self.selectedSkillId == "" then
+			_UIToast:ShowMessage("Please select a skill first")
+			 return 
+		end
+		
+		local localPlayer = _UserService.LocalPlayer
+		
+		local evt = SkillSelected()
+		evt.skillId = self.selectedSkillId
+		localPlayer:SendEvent(evt)
+		
+		
+		self:Show(false)
+	end
+
+	method void OnCancel()
+		self:Show(false)
+	end
+
+	method void SelectSkill(string skillId)
+		self.selectedSkillId = skillId 
+	end
+
+	@ExecSpace("ClientOnly")
+	@EventSender("LocalPlayer")
+	handler SkillInventoryUpdatedEvent(SkillInventoryUpdatedEvent event)
+		self:ApplySkill(event.iconRUID, event.skillId)
+	end
+
+end

@@ -1,0 +1,69 @@
+@Struct
+script CircularBuffer
+
+	property table buffer = {}
+
+	property number length = 0
+
+	property number lastItem = 1
+
+	property number maxBuffer = 0
+
+	method void Add(any item)
+		self.buffer[self.lastItem] = item
+		self.lastItem = (self.lastItem + 1) % self.maxBuffer
+		if self.lastItem == 0 then 
+			self.lastItem = 1
+		end
+		self.length += 1
+	end
+
+	method void Remove(any item)
+		local index = self:GetIndex(item)
+		if index > 0 and index <= self.maxBuffer then 
+			self.buffer[index] = nil
+		end
+		
+		self.length -= 1
+	end
+
+	method boolean Contains(any check)
+		for i, item in pairs(self.buffer) do
+			log(tostring(item)) 
+			if item == check then
+				return true
+			end
+		end
+		
+		
+		
+		return false
+	end
+
+	method any Get(any item)
+		local index = self:GetIndex(item)
+		
+		if index > 0 then 
+			return self.buffer[index]
+		else
+			return nil
+		end
+	end
+
+	method void Init(integer length)
+		self.maxBuffer = length
+	end
+
+	method number GetIndex(any check)
+		local index = 0
+		for i, item in pairs(self.buffer) do 
+			if item == check then 
+				index = i 
+				break
+			end
+		end
+		
+		return index
+	end
+
+end

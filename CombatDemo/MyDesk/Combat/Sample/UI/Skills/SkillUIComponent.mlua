@@ -1,0 +1,93 @@
+@Component
+script SkillUIComponent extends Component
+
+	property string emptySlotRUID = "5413ab8864b870941878f2c46b61b7ba"
+
+	property Entity skillSlotParent = "b6d76092-8806-41e5-8558-6712d2e4263b"
+
+	@ExecSpace("ClientOnly")
+	method void OnBeginPlay()
+		self._T.skillSlots = {}
+		
+		local children = self.skillSlotParent.Children
+		local skillSlots = {}
+		
+		for i, child in ipairs(children) do
+			table.insert(self._T.skillSlots , child)
+			child:ConnectEvent(ButtonClickEvent, function()
+				self:OnApplySkillSlot(i)
+			end)
+			
+			child:GetChildByName("Active"):ConnectEvent(ButtonClickEvent, function()
+				self:OnTriggerSkill(i)
+			end)
+		end
+	end
+
+	@ExecSpace("Client")
+	method void OnApplySkillSlot(integer index)
+		self.Entity.SkillWindowComponent:Show(true)
+	end
+
+	method void OnTriggerSkill(integer index)
+		local localPlayer = _UserService.LocalPlayer
+		local evt = SkillUsedEvent()
+		evt.skillId = index
+		localPlayer:SendEvent(evt)
+	end
+
+	@ExecSpace("Client")
+	method void ApplyIcon(string active, string highlight, string inactive, integer index)
+		local slot = self:GetSkillSlot(index)
+		
+		self:ActivateActiveIcon(index, true)
+		
+		local activeIcon = slot:GetChildByName("Active")
+		local activeRen = activeIcon.SpriteGUIRendererComponent
+		
+		local inactiveIcon = slot:GetChildByName("Inactive")
+		local inactiveRen = inactiveIcon.SpriteGUIRendererComponent
+		
+		local btn = activeIcon.ButtonComponent
+		
+		activeRen.ImageRUID = active
+		btn.ImageRUIDs.HighlightedSprite = highlight
+		
+		
+		inactiveRen = inactive
+	end
+
+	method void ResetIcon(integer index)
+		self:ActivateActiveIcon(index, false)
+		self:ActivateInactiveIcon(index, false)
+	end
+
+	method void EnterCooldown(integer skillIndex)
+		--TODO Apply the fillAmount for the inactive icon
+		self:ActivateInactiveIcon(skillIndex, true)
+	end
+
+	method Entity GetSkillSlot(number index)
+		return self._T.skillSlots[index]
+	end
+
+	method void ActivateActiveIcon(integer index, boolean isActive)
+		local slot = self:GetSkillSlot(index)
+		local activeIcon = slot:GetChildByName("Active")
+		activeIcon:SetEnable(isActive)
+		
+	end
+
+	method void ActivateInactiveIcon(integer index, boolean isActive)
+		local slot = self:GetSkillSlot(index)
+		local activeIcon = slot:GetChildByName("Inactive")
+		activeIcon:SetEnable(isActive)
+	end
+
+	@ExecSpace("ClientOnly")
+	@EventSender("LocalPlayer")
+	handler OnSkillEquippedEvent(OnSkillEquippedEvent event)
+		self:ApplyIcon(event.activeSkillRUID, event.highlightSkillRUID, event.inactiveSkillRUID, event.index)
+	end
+
+end

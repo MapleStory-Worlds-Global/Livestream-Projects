@@ -1,0 +1,95 @@
+@Component
+script MonsterSpawn extends Component
+
+	property string monsterID = "model://maplestorymonster$076b9e0a5d1f42c398c7658b4844bdb7"
+
+	property Vector2 spawnRange = Vector2(-7,4.5)
+
+	property number MaxSpawnCount = 10
+
+	property number spawnInterval = 10
+
+	property number Time = 0
+
+	property table MonsterArray = {}
+
+	@ExecSpace("ServerOnly")
+	method void OnBeginPlay()
+		self.MonsterArray = {}
+	end
+
+	method void SpawnMonster(integer spawnCount)
+		local parent = _EntityService:GetEntityByPath("/maps/" .. self.Entity.CurrentMapName)
+		local nextNum = 0
+		local positions = self:GetRandomPosition(spawnCount)
+		
+		for i = 1, #positions do
+			local monster = self.MonsterArray[nextNum]
+			
+			if not isvalid(monster) then 
+				self.MonsterArray[i] = _SpawnService:SpawnByModelId(
+				self.monsterID, 
+				"SpawnedMonster",
+				positions[i],
+				parent)
+			else
+				if not monster.Enabled then 
+					monster.Monster:Respawn(positions[i])
+				end
+			end
+			
+			
+			_EffectService:PlayEffect("9c5db7680db44750b1c37660ff3ccd78", self.Entity, positions[i], 0, Vector3.one)
+		end
+		
+		
+	end
+
+	method table GetRandomPosition(integer spawnCount)
+		local leftX = self.spawnRange.x -- x coordinate on the left side of the spawn area
+		local rightX = self.spawnRange.y -- x coordinate on the right side of the spawn area
+		local y = 0 -- y coordinate of the spawn area
+		local areaWidth = rightX - leftX
+		local positions = {}
+		
+		for i = 1, spawnCount do
+			local randomX = (_UtilLogic:RandomIntegerRange(0,100) / 100) * areaWidth + leftX
+			positions[i] = Vector3(randomX, y, 0)
+		end
+		
+		
+		
+		return positions
+	end
+
+	method integer GetCurMonsterCount()
+		local i = 1
+		
+		local count = 0
+		while i <= #self.MonsterArray do
+			if isvalid(self.MonsterArray[i]) and self.MonsterArray[i].Enable then
+				count += 1
+			end
+			
+			i = i + 1
+		end
+		
+		return count
+	end
+
+	@ExecSpace("ServerOnly")
+	method void OnUpdate(number delta)
+		self.Time = self.Time + delta
+		if self.Time >= self.spawnInterval then
+			self.Time = 0
+			local curMonsterCnt = self:GetCurMonsterCount()
+			
+			local spawnCount = self.MaxSpawnCount - curMonsterCnt
+			
+			if spawnCount > 0 then
+				self:SpawnMonster(spawnCount)
+			end
+		end
+	end
+
+end

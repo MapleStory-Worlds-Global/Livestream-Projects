@@ -1,0 +1,36 @@
+@Struct
+script CharacterStats
+
+	property number hp = 0
+
+	property number defense = 0
+
+	property number level = 1
+
+	property number power = 0
+
+	property number mp = 0
+
+	property number finalDefense = 0
+
+	method number GetPower(CharacterStats defender)
+		return self.power
+	end
+
+	method number GetDefense()
+		return self.finalDefense
+	end
+
+	method number GetHP()
+		return self.hp
+	end
+
+	method void Init(Entity context)
+		
+	end
+
+	method number GetDamage(integer level, number powerValue)
+		return powerValue
+	end
+
+end

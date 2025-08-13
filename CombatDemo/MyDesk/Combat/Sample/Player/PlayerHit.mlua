@@ -1,0 +1,35 @@
+@Component
+script PlayerHit extends HitComponent
+
+	@MinValue(0)
+	property number ImmuneCooldown = 1
+
+	@HideFromInspector
+	property number LastHitTime = 0
+
+	property number hitForce = 2
+
+	property number upwardForce = 2
+
+	method boolean IsHitTarget(string attackInfo)
+		local currentTime = _UtilLogic.ElapsedSeconds
+		if self.LastHitTime + self.ImmuneCooldown < currentTime then
+			self.LastHitTime = _UtilLogic.ElapsedSeconds
+			return true
+		end
+		
+		return false
+	end
+
+	method void OnHit(Entity attacker, integer damage, boolean isCritical, string attackInfo, int32 hitCount)
+		if (damage <= 0) then 
+			_DamageSkinService:PlayTextDamage(self.Entity, self.Entity.DamageSkinSettingComponent.DamageSkinId.DataId, DamageSkinTextType.Miss, DamageSkinTweenType.Default)
+			return
+		end
+		
+		local pushDir = self.Entity.TransformComponent.Position:ToVector2() - attacker.TransformComponent.Position:ToVector2()
+		self.Entity.RigidbodyComponent:AddForce((pushDir:Normalize() + Vector2.up * self.upwardForce) * self.hitForce)
+		__base:OnHit(attacker, damage, isCritical, attackInfo, hitCount)
+	end
+
+end

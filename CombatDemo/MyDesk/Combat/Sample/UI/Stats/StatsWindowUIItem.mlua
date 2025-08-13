@@ -1,0 +1,31 @@
+@Component
+script StatsWindowUIItem extends Component
+
+	property any onClickCallback = nil
+
+	property Entity button = nil
+
+	property TextComponent text = nil
+
+	method void SetListener(any callback)
+		
+		self.onClickCallback = callback
+		
+	end
+
+	method void onClick()
+		if isvalid(self.onClickCallback) then 
+			self.onClickCallback()
+		end
+	end
+
+	@ExecSpace("ClientOnly")
+	method void OnBeginPlay()
+		self.button:ConnectEvent(ButtonClickEvent, self.onClick)
+	end
+
+	method void SetText(string text)
+		self.text.Text = text
+	end
+
+end

@@ -1,0 +1,70 @@
+@Struct
+script SkillInfoBuilder
+
+	property table infos = {}
+
+	property Entity context = nil
+
+	method SkillInfoBuilder Init(Entity context)
+		self.context = context
+		self.infos[_SkillExecutionEnum.ATTACKING] = false
+		self.infos[_SkillExecutionEnum.ONTARGETHIT] = false
+		self.infos[_SkillExecutionEnum.DISABLECONTROLLER] = false
+		self.infos[_SkillExecutionEnum.CLIENTEXECUTION] = false
+		return self
+	end
+
+	method SkillInfoBuilder withAttackInfo(table attackInfo)
+		self.infos[_SkillExecutionEnum.ATTACKINFO] = attackInfo
+		return self
+	end
+
+	method SkillInfoBuilder withActivationEffect(table activationEffect)
+		self.infos[_SkillExecutionEnum.ACTIVATIONEFFECT] = activationEffect
+		return self
+	end
+
+	method SkillInfoBuilder withActivationSFX(string sfx)
+		self.infos[_SkillExecutionEnum.ACTIVATIONSFX] = sfx
+		return self
+	end
+
+	method SkillInfoBuilder withAnimation(string animation)
+		self.infos[_SkillExecutionEnum.ANIMATION] = animation
+		return self
+	end
+
+	method SkillInfoBuilder WithClientExecution()
+		self.infos[_SkillExecutionEnum.CLIENTEXECUTION] = true
+		return self
+	end
+
+	method SkillInfoBuilder WithDisableController()
+		self.infos[_SkillExecutionEnum.DISABLECONTROLLER] = true
+		return self
+	end
+
+	method SkillInfoBuilder WithOnTargetHit()
+		self.infos[_SkillExecutionEnum.ONTARGETHIT] = true
+		return self
+	end
+
+	method SkillInfoBuilder WithAttackFrameInfo(integer frameShape, integer frameActivation, integer frameLength)
+		self.infos[_SkillExecutionEnum.ATTACKFRAMEINFO] = {
+			["Shape"] = frameShape,
+			["Activation"] = frameActivation,
+			["Length"] = frameLength
+		}
+		return self
+	end
+
+	method SkillInfoBuilder WithAttack()
+		self.infos[_SkillExecutionEnum.ATTACKING] = true
+		return self
+	end
+
+	method table Build()
+		return self.infos
+	end
+
+end

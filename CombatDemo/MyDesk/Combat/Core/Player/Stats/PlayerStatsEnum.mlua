@@ -1,0 +1,14 @@
+@Logic
+script PlayerStatsEnum extends Logic
+
+	property number STR = 1
+
+	property number DEX = 2
+
+	property number INT = 3
+
+	property number LUK = 4
+
+	property number MAX = 5
+
+end

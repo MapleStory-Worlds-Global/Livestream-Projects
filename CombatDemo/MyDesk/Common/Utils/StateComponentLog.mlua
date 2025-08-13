@@ -1,0 +1,29 @@
+@Component
+script StateComponentLog extends Component
+
+	@ExecSpace("ServerOnly")
+	method void OnBeginPlay()
+		local state = self.Entity.StateComponent
+			if state == nil then
+				state = self.Entity:AddComponent("StateComponent")
+			end
+			 
+			local chatBallon = self.Entity.ChatBalloonComponent
+			if chatBallon == nil then
+				chatBallon = self.Entity:AddComponent("ChatBalloonComponent")
+			end
+			 
+			 
+			self.Entity.ChatBalloonComponent.AutoShowEnabled = true
+			self.Entity.ChatBalloonComponent.ChatModeEnabled = false
+			self.Entity.ChatBalloonComponent.ShowDuration = 1
+			self.Entity.ChatBalloonComponent.HideDuration = 0
+			self.Entity.ChatBalloonComponent.FontSize = 2
+	end
+
+	@ExecSpace("ServerOnly")
+	method void OnUpdate(number delta)
+		self.Entity.ChatBalloonComponent.Message = self.Entity.StateComponent.CurrentStateName
+	end
+
+end

@@ -1,0 +1,8 @@
+@Event
+script PlayerStatIncreased extends EventType
+
+	property number increaseIndex = 0
+
+	property number increaseValue = 0
+
+end

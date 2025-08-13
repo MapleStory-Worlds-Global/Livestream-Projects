@@ -1,0 +1,44 @@
+@Logic
+script SkillFactory extends Logic
+
+	property integer NewValue1 = 0
+
+	method Skill CreateSkillWithData(any data)
+		---@type UserDataRow
+		local skillData = data
+		local id = skillData:GetItem("id")
+		
+		---@type Skill
+		local skill
+		if id == _SkillsEnum.HERO_COMBOFORCE then
+			skill = ComboForce()
+		elseif id == _SkillsEnum.HERO_INCISING then
+			skill = Incising()
+		elseif id == _SkillsEnum.HERO_RAGINGBLOW then 
+			skill = RagingBlow()
+		elseif id == _SkillsEnum.HERO_WARRIORLEAP then
+			skill = WarriorLeap()
+		else
+			skill = Skill()
+		end
+		
+		
+		local builder = SkillBuilder()
+			:WithIcon(skillData:GetItem("activeSkillIcon"), skillData:GetItem("inactiveSkillIcon"),skillData:GetItem("highlightSkillIcon"))
+			:withActivationEffectRUIDs(skillData:GetItem("activationEffectRUIDs"))
+			:withTargetEffectRUIDs(skillData:GetItem("targetEffectRUIDs"))
+			:withCooldown(tonumber(skillData:GetItem("cooldown")))
+			:withDamage(tonumber(skillData:GetItem("damage")))
+			:withHitCount(tonumber(skillData:GetItem("hitCount")), tonumber(skillData:GetItem("hitInterval")))
+			:WithId(id)
+			:WithHitSFX(skillData:GetItem("hitSFX"))
+			:WithActivationSFX(skillData:GetItem("activationSFX"))
+			:WithMaxTargetCount(tonumber(skillData:GetItem("maxTargetCount")))
+			:withAnimation(skillData:GetItem("animation"))
+		
+		skill:Build(builder)
+		return skill
+		
+	end
+
+end
