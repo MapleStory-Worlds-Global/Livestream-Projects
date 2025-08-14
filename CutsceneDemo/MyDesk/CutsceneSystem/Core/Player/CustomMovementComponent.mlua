@@ -1,0 +1,58 @@
+@Component
+script CustomMovementComponent extends MovementComponent
+
+	@Sync
+	property boolean isAutoMove = false
+
+	@ExecSpace("ClientOnly")
+	method void OnBeginPlay()
+		local sc = self.Entity.StateComponent
+		
+		sc:AddState("AUTOWALK", Autowalk)
+		
+		self._T.stateComp = sc
+	end
+
+	@ExecSpace("ClientOnly")
+	method void MoveToPosition(Vector2 targetPos, any onComplete)
+		--This function will assume there is a clear X path to the destination, and will not account for paths that require jumps or other special movement. 
+		local lastMoveSeconds = _UtilLogic.ServerElapsedSeconds
+		local transComp = self.Entity.TransformComponent
+		local moveTimer = 0
+		
+		local state = self.Entity.StateComponent
+		
+		
+		self.Entity.PlayerControllerComponent.LookDirectionX = math.sign(targetPos.x - transComp.Position.x)
+		
+		state:ChangeState("AUTOWALK")
+		
+		local onMove = function ()
+			local currentElapsed = _UtilLogic.ServerElapsedSeconds
+			local delta = currentElapsed - lastMoveSeconds
+			lastMoveSeconds = currentElapsed
+		
+			local curPos = transComp.Position
+			local distance = targetPos.x - curPos.x
+			
+			if math.abs(distance) < .5 then
+				_TimerService:ClearTimer(moveTimer)
+				state:ChangeState("IDLE")
+				self:Stop()
+				onComplete()
+				return
+			end
+			
+			self:MoveToDirection(Vector2.right * math.sign(distance), 1/30) -- * math.sign(distance)
+		end
+		
+		moveTimer = _TimerService:SetTimerRepeat(onMove, 1/30)
+	end
+
+	@ExecSpace("ClientOnly")
+	method void OnUpdate(number delta)
+		--log(delta)
+		--self:MoveToDirection(Vector2.right, delta)
+	end
+
+end

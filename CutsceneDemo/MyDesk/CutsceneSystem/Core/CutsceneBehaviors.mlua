@@ -1,0 +1,156 @@
+@Logic
+script CutsceneBehaviors extends Logic
+
+	@ExecSpace("Client")
+	method void ShowBubble(CutsceneSequenceItem item, any onComplete)
+		local entity = item:GetOrSpawnEntity()
+		local balloon = entity.ChatBalloonComponent
+		
+		local oChatMode = balloon.ChatModeEnabled
+		local oAutoShow = balloon.AutoShowEnabled
+		local oMessage = balloon.Message
+		
+		balloon.ChatModeEnabled = false
+		balloon.AutoShowEnabled = true
+		balloon.Message = item.message
+		balloon.ShowDuration = 5
+		balloon.HideDuration = 0
+		
+		local func = function ()
+			item.isComplete = true
+			balloon.ChatModeEnabled = oChatMode
+			balloon.AutoShowEnabled = oAutoShow
+			balloon.Message = oMessage
+		end
+		local timer = _TimerService:SetTimerOnce(func, 5)
+	end
+
+	method void ShowEmote(CutsceneSequenceItem item)
+		local entity = item:GetOrSpawnEntity()
+		
+		local playerEmote = entity.PlayerEmote
+		local emote = _EmoteEnum:FromString(item.params.emote)
+		
+		if emote > 0 then
+			playerEmote:ShowEmote(emote, item.params.duration, item.params.isBubble)
+		end
+		
+		local func = function ()
+			item.isComplete = true
+		end
+		
+		local timer = _TimerService:SetTimerOnce(func, item.params.duration)
+	end
+
+	@ExecSpace("Client")
+	method void DisablePlayer(CutsceneSequenceItem item)
+		local player = item:GetTriggeringPlayerEntity()
+		local pc = player.PlayerControllerComponent
+		pc.Enable = false
+	end
+
+	@ExecSpace("Client")
+	method void EnablePlayer(CutsceneSequenceItem item)
+		local player = item:GetTriggeringPlayerEntity()
+		local pc = player.PlayerControllerComponent
+		pc.Enable = true
+	end
+
+	@ExecSpace("Client")
+	method void MoveToPosition(CutsceneSequenceItem item)
+		local entity = item:GetOrSpawnEntity()
+		local mc = entity.CustomMovementComponent
+		if isvalid(mc) then
+			
+			local func = function ()
+				item.isComplete = true
+			end
+		
+			mc:MoveToPosition(item.params.position, func)
+		else
+			local originalPosition = entity.TransformComponent.Position
+			local distance = item.params.position - originalPosition:ToVector2()
+			local dir = -math.sign(distance.x)
+		
+			entity.TransformComponent.Scale.x = dir
+			local tweenCallback = function (tweenValue)
+				entity.TransformComponent.Position = originalPosition + tweenValue:ToVector3()
+			end
+			_TweenLogic:PlayTween(Vector2(0,0), distance, 5, EaseType.Linear, tweenCallback)
+		
+			local func = function ()
+				item.isComplete = true
+			end
+		
+			local timer = _TimerService:SetTimerOnce(func, 5)
+		end
+	end
+
+	@ExecSpace("Client")
+	method void Focus(CutsceneSequenceItem item)
+		local entity = item:GetOrSpawnEntity()
+		
+		_CameraService:SwitchCameraTo(entity.CameraComponent)
+		local func = function ()
+			item.isComplete = true
+		end
+		local timer = _TimerService:SetTimerOnce(func, 5)
+	end
+
+	@ExecSpace("Client")
+	method void ShowDialogue(CutsceneSequenceItem item)
+		log("Showing Dialogue" .. tostring(item.params.dialogID))
+		
+		local func = function ()
+			item.isComplete = true
+		end
+		
+		_DialogLogic:StartDialogWithCallback(item.params.dialogID, func)
+		
+	end
+
+	@ExecSpace("Client")
+	method void Shake(CutsceneSequenceItem item)
+		_CameraService:GetCurrentCameraComponent():ShakeCamera(1.0, 2)
+		local func = function ()
+			item.isComplete = true
+		end
+		
+		local timer = _TimerService:SetTimerOnce(func, 2)
+	end
+
+	@ExecSpace("Client")
+	method void Appear(CutsceneSequenceItem item)
+		
+		local entity = item:GetOrSpawnEntity()
+		entity.TransformComponent.Position = item.params.position:ToVector3()
+		
+		if not item.params.effectRUID == nil then
+			_EffectService:PlayEffect(item.params.effectRUID, entity, item.params.position:ToVector3(), 0, Vector3.one)
+		end
+		
+		local func = function ()
+			item.isComplete = true
+		end
+		local timer = _TimerService:SetTimerOnce(func, 5)
+	end
+
+	@ExecSpace("Client")
+	method void Disappear(CutsceneSequenceItem item)
+		if item.target == "LocalPlayer" then log_warning("Cannot Destroy Player Entity...") return end
+		
+		local entity = item:GetOrSpawnEntity()
+		
+		if not item.params.effectRUID == nil then
+			_EffectService:PlayEffect(item.params.effectRUID, entity, entity.TransformComponent.Position, 0, Vector3.one)
+		end
+		
+		entity:Destroy()
+		
+		local func = function ()
+			item.isComplete = true
+		end
+		local timer = _TimerService:SetTimerOnce(func, 1)
+	end
+
+end

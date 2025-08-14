@@ -1,0 +1,17 @@
+﻿Command,Target,Params,Message,WithNext
+DisablePlayer,,,,TRUE
+ShowBubble,LocalPlayer,String|duration|Int64|3,"""What's that..?""",
+ShowEmote,LocalPlayer,String|emote|String|HAPPY\nString|duration|Int64|3\nString|isBubble|boolean|true,,TRUE
+MoveToPosition,LocalPlayer,"String|position|MODVector2|(-2.500,-1.200)\nString|duration|Int64|5",,
+Shake,,String|duration|Int64|2,,TRUE
+ShowEmote,LocalPlayer,String|emote|String|SHOCK\nString|duration|Int64|3\nString|isBubble|boolean|true,,
+Focus,model://3fb496d2-b152-4c08-a932-54bebca6ee2e,,,TRUE
+Appear,model://3fb496d2-b152-4c08-a932-54bebca6ee2e,"String|position|MODVector2|(10.000,-1.200)\nString|effectRUID|String|324c395a9cc6482fa151741e04a2d6d3",,TRUE
+ShowBubble,model://3fb496d2-b152-4c08-a932-54bebca6ee2e,,"""DON'T TOUCH THAT!!""",
+MoveToPosition,model://3fb496d2-b152-4c08-a932-54bebca6ee2e,"String|position|MODVector2|(-0.500,-1.200)\nString|duration|Int64|5",,
+ShowDialogue,,String|dialogID|String|Tutorial,,
+EnablePlayer,,,,TRUE
+ShowBubble,model://3fb496d2-b152-4c08-a932-54bebca6ee2e,String|duration|Int64|3,"""You've been warned…""",TRUE
+Focus,LocalPlayer,,,TRUE
+MoveToPosition,model://3fb496d2-b152-4c08-a932-54bebca6ee2e,"String|position|MODVector2|(10.000,-1.200)\nString|duration|Int64|5",,
+Disappear,model://3fb496d2-b152-4c08-a932-54bebca6ee2e,String|effectRUID|String|324c395a9cc6482fa151741e04a2d6d3,,TRUE

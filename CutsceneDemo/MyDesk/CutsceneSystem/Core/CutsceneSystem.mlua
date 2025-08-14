@@ -1,0 +1,135 @@
+@Logic
+script CutsceneSystem extends Logic
+
+	property string cutsceneBubble = "b3b58ef7e9c14e27bf4bf6e910295eb0"
+
+	property table cutsceneIDs = {}
+
+	property boolean sequenceInProgress = false
+
+	@ExecSpace("ClientOnly")
+	method void OnBeginPlay()
+		self._T.activeBubbles = {}
+	end
+
+	method CutsceneSequence LoadData(string data, string triggeredPlayer)
+		local data = _DataService:GetTable(data)
+		
+		if not isvalid(data) then
+			return nil
+		end
+		
+		local sequence = CutsceneSequence()
+		for i, row in ipairs(data:GetAllRow()) do
+			local item = CutsceneSequenceItem()
+			item:Init(row, triggeredPlayer)
+			sequence:AddSequence(item)
+		end
+		
+		return sequence
+	end
+
+	@ExecSpace("Client")
+	method void BeginCutscene(string cutsceneName, string triggeredPlayer)
+		local sequence = self:LoadData(cutsceneName, triggeredPlayer)
+		if sequence == nil or self.sequenceInProgress then
+			if self.sequenceInProgress then
+				log_warning("Unable to start Sequence. Sequence in progress")
+			end
+			return
+		end
+		
+		local index = 1
+		local count = sequence:Count()
+		local sequenceTimer = 0
+		local currentSequence = nil
+		local getNextSequence = nil
+		
+		local startSequence = function ()
+			---@type CutsceneSequenceItem
+			currentSequence = sequence.items[index]
+		
+			local success, error = pcall(_CutsceneBehaviors[currentSequence.command], _CutsceneBehaviors, currentSequence)
+			if success == false then
+				log_error(error)
+			end
+			sequenceTimer = _TimerService:SetTimerRepeat(getNextSequence, 0.25)
+		end
+		
+		getNextSequence = function ()
+			if currentSequence.isComplete or currentSequence.withNext == true then
+				_TimerService:ClearTimer(sequenceTimer)
+				index += 1
+				if index <= count then
+					startSequence()
+				else
+					self.sequenceInProgress = false
+					self:ShowOtherClients(triggeredPlayer, true)
+					self:BroadcastShowClient(triggeredPlayer, false)
+					log("Sequence Complete")
+				end
+			end
+		end
+		
+		self:ShowOtherClients(triggeredPlayer, false)
+		self:BroadcastShowClient(triggeredPlayer, true)
+		startSequence()
+		self.sequenceInProgress = true
+	end
+
+	@ExecSpace("Server")
+	method void BroadcastShowClient(string triggeredPlayer, boolean isShow)
+		local triggerEntity = _UserService:GetUserEntityByUserId(triggeredPlayer)
+		
+		--Hide Everyone BUT the Trigger Player
+		local players = _UserService:GetUsersByMapName(triggerEntity.CurrentMapName)
+		for index, player in pairs(players) do
+			if player ~= triggerEntity then
+				self:ShowBubble(triggeredPlayer, isShow, player.PlayerComponent.UserId)
+			end
+		end
+	end
+
+	@ExecSpace("Client")
+	method void ShowOtherClients(string triggeredPlayer, boolean activeState)
+		local triggerEntity = _UserService:GetUserEntityByUserId(triggeredPlayer)
+		
+		--Hide Everyone BUT the Trigger Player
+		local players = _UserService:GetUsersByMapName(triggerEntity.CurrentMapName)
+		for index, player in pairs(players) do
+			if player ~= triggerEntity then
+				
+				player.AvatarRendererComponent.Enable = activeState
+				player.NameTagComponent.Enable = activeState
+			end
+		end
+	end
+
+	@ExecSpace("Client")
+	method void ShowBubble(string triggeredPlayer, boolean isShow)
+		log("Showing Bubble")
+		local triggerEntity = _UserService:GetUserEntityByUserId(triggeredPlayer)
+		
+		if isShow == true then
+			self._T.activeBubbles[triggeredPlayer] = _EffectService:PlayEffectAttached(self.cutsceneBubble, triggerEntity, Vector3(0,0.7,0), 0, Vector3.one, true)
+			log(self._T.activeBubbles[triggeredPlayer])
+		else
+			local bubble = self._T.activeBubbles[triggeredPlayer]
+			log(bubble)
+			log(self._T.activeBubbles[triggeredPlayer])
+			if bubble ~= nil then
+				_EffectService:RemoveEffect(bubble)
+			end
+		end
+	end
+
+	@EventSender("Service", "InputService")
+	handler HandleKeyDown(KeyDownEvent event)
+		local key = event.key
+		
+		if key == KeyboardKey.F then
+			self:BeginCutscene("DialogueSequence_1", _UserService.LocalPlayer.PlayerComponent.UserId)
+		end
+	end
+
+end

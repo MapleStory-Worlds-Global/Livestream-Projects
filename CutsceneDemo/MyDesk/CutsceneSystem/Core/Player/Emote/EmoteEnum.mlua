@@ -1,0 +1,47 @@
+@Logic
+script EmoteEnum extends Logic
+
+	property integer HAPPY = 1
+
+	property integer QUESTION = 2
+
+	property integer ANGRY = 3
+
+	property integer LOVE = 4
+
+	property integer CRY = 5
+
+	property integer SHOCK = 6
+	
+	property integer MAX = 7
+
+	method void OnBeginPlay()
+		local stringTable = {}
+
+		stringTable["HAPPY"] = self.HAPPY
+		stringTable["QUESTION"] = self.QUESTION
+		stringTable["ANGRY"] = self.ANGRY
+		stringTable["LOVE"] = self.LOVE
+		stringTable["CRY"] = self.CRY
+		stringTable["SHOCK"] = self.SHOCK
+		stringTable["MAX"] = self.MAX
+
+
+		self._T.stringTable = stringTable
+	end
+
+	method boolean Validate(integer index)
+		return index > 0 and index < self.MAX
+	end
+
+	method integer FromString(string value)
+		local stringTable = self._T.stringTable
+		local foundIndex = stringTable[string.upper(value)]
+
+		if foundIndex == nil then
+			return -1
+		end
+
+		return foundIndex
+	end
+end

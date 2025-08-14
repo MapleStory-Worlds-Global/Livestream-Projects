@@ -1,0 +1,17 @@
+@Logic
+script UIInteraction extends Logic
+
+	property UITransformComponent interactionUI = "0b55ce67-01cb-41e9-829d-eca916f7eb20"
+
+	method void ShowAtPosition(Vector3 targetPos)
+		local interactUI = self.interactionUI
+		
+		interactUI.WorldPosition = targetPos
+		interactUI.Entity:SetEnable(true)
+	end
+
+	method void Hide()
+		self.interactionUI.Entity:SetEnable(false)
+	end
+
+end

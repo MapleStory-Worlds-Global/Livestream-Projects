@@ -1,0 +1,65 @@
+@Component
+script PlayerEmote extends Component
+	
+
+	method void OnInitialize()
+		local bubbleEmotes = {
+			[_EmoteEnum.HAPPY] = "20484c445868401880c75761483b81fd",
+			[_EmoteEnum.QUESTION] = "c3ee2ec475554ec4b820cb7c0d084b40",
+			[_EmoteEnum.ANGRY] = "10d1764a65df40cc9cccb7a609d69a11",
+			[_EmoteEnum.LOVE] = "51241e23333f4be58ddb7ce9cab95cb8",
+			[_EmoteEnum.CRY] = "9798492ad0664bd79977d16130c988ab",
+			[_EmoteEnum.SHOCK] = "ec28570a8fd24694a8850ba44d7fbd57"
+		}
+
+		local faceEmotes = {
+			[_EmoteEnum.HAPPY] = EmotionalType.Smile,
+			[_EmoteEnum.QUESTION] = EmotionalType.qBlue,
+			[_EmoteEnum.ANGRY] = EmotionalType.Angry,
+			[_EmoteEnum.LOVE] = EmotionalType.Love,
+			[_EmoteEnum.CRY] = EmotionalType.Cry,
+			[_EmoteEnum.SHOCK] = EmotionalType.Pain
+		}
+
+		self._T.bubbleEmotes = bubbleEmotes
+		self._T.faceEmotes = faceEmotes
+	end
+
+	
+	method void ShowEmote(integer emote, number duration, boolean isBubble)
+		if not _EmoteEnum:Validate(emote) then
+			return
+		end
+
+		if isBubble == true then
+			self:BubbleEmote(emote, duration)
+		else
+			self:FaceEmote(emote, duration)
+		end
+	end
+
+	method void BubbleEmote(integer emote, number duration)
+		---@type table<number,string>
+		local bubbleEmotes = self._T.bubbleEmotes
+		local effect = _EffectService:PlayEffectAttached(bubbleEmotes[emote], self.Entity, Vector3(-0.5,0.5,0), 0, Vector3.one, true)
+
+		local emoteTimer = 0
+		local func = function ()
+			_EffectService:RemoveEffect(effect)
+		end
+
+		_TimerService:SetTimerOnce(func, duration)
+	end
+
+	method void FaceEmote(integer emote, number duration)
+
+		local avatarRen = self.Entity.AvatarRendererComponent
+
+		if avatarRen == nil then return end
+
+		---@type table<number,EmotionalType>
+		local faceEmotes = self._T.faceEmotes
+		avatarRen:PlayEmotion(faceEmotes[emote], duration)
+	end
+
+end

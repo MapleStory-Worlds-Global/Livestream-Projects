@@ -39,7 +39,7 @@
   - [SkillUsedEvent](#skillusedevent)
   - [PlayerStatIncreased](#playerstatincreased)
   - [PlayerStatsUpdate](#playerstatsupdate)
-
+- [Changelog & Downloads](#changelog)
 ---
 
 

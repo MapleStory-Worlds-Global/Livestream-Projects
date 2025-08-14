@@ -1,0 +1,46 @@
+@Component
+script CutsceneTrigger extends Component
+
+	@HideFromInspector
+	property boolean canTrigger = false
+
+	property string cutsceneName = "DialogueSequence_1"
+
+	@ExecSpace("Client")
+	method void HandleTriggeEnter()
+		self.canTrigger = true
+		local ren = self.Entity.SpriteRendererComponent
+		local info = _SpriteUtils:GetSpriteAnimSize(ren.SpriteRUID, Vector2(0.5,0.7), 1)
+		_UIInteraction:ShowAtPosition(self.Entity.TransformComponent.Position + info["OFFSET"]:ToVector3())
+	end
+
+	@ExecSpace("Client")
+	method void HandleTriggerExit()
+		_UIInteraction:Hide()
+		self.canTrigger = false
+	end
+
+	@ExecSpace("Client")
+	method void TriggerCutscene()
+		local localPlayerId = _UserService.LocalPlayer.PlayerComponent.UserId
+		_CutsceneSystem:BeginCutscene(self.cutsceneName, localPlayerId)
+	end
+
+	@EventSender("Self")
+	handler OnTriggerEnter(TriggerEnterEvent event)
+		self:HandleTriggeEnter()
+	end
+
+	@EventSender("Self")
+	handler OnTriggerExit(TriggerLeaveEvent event)
+		self:HandleTriggerExit()
+	end
+
+	@EventSender("Service", "InputService")
+	handler OnKeyDown(KeyDownEvent event)
+		if event.key == KeyboardKey.F and self.canTrigger then
+			self:TriggerCutscene()
+		end
+	end
+
+end

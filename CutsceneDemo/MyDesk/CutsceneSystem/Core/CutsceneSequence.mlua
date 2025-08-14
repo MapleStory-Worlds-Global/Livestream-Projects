@@ -1,0 +1,14 @@
+@Struct
+script CutsceneSequence
+
+	property table items = {}
+
+	method void AddSequence(CutsceneSequenceItem item)
+		table.insert(self.items, item)
+	end
+
+	method number Count()
+		return #self.items
+	end
+
+end

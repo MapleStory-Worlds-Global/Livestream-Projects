@@ -1,0 +1,4 @@
+@State
+script Autowalk extends StateType
+
+end

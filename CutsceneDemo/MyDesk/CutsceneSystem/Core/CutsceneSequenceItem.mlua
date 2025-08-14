@@ -1,0 +1,94 @@
+@Struct
+script CutsceneSequenceItem
+
+	property string command = nil
+
+	property string target = nil
+
+	property table params = nil
+
+	property string message = nil
+
+	property string triggeredPlayer = nil
+
+	property boolean isComplete = nil
+
+	property boolean withNext = false
+
+	method void Init(any row, string triggeredPlayer)
+		---@type UserDataRow 
+		local r = row
+		
+		self.command = r:GetItem("Command")
+		self.params = self:ConvertToTable(r:GetItem("Params"))
+		self.target = r:GetItem("Target")
+		self.message = r:GetItem("Message")
+		self.withNext = r:GetItem("WithNext") == "TRUE" and true or false
+		self.triggeredPlayer = triggeredPlayer
+		self.isComplete = false
+	end
+
+	method table ConvertToTable(string params)
+		local final, success = params:gsub("|", "\t"):gsub("\\n","\n")
+		if not success then
+			return nil
+		end
+		
+		local table = _UtilLogic:StringToTable(final)
+		return table
+	end
+
+	method Entity GetTriggeringPlayerEntity()
+		local entity = _UserService:GetUserEntityByUserId(self.triggeredPlayer)
+		
+		return entity
+	end
+
+	method Entity GetOrSpawnEntity()
+		local target = self.target
+		
+		if _UtilLogic:IsNilorEmptyString(target) then
+			return
+		end
+		
+		local entity = nil
+		
+		if target == "LocalPlayer" then
+			entity = _UserService:GetUserEntityByUserId(self.triggeredPlayer)
+		else
+			local localEntity = _UserService:GetUserEntityByUserId(self.triggeredPlayer)
+			local modelEntities = _EntityService:GetEntitiesSpawnedByModelId(target)
+			if modelEntities ~= nil and #modelEntities > 0 then
+				entity = modelEntities[1]
+			else
+				entity = _SpawnService:SpawnByModelId(target, "Cutscene Model", Vector3(0,1,0), localEntity.CurrentMap)
+			end
+		end
+		
+		return entity
+	end
+
+	method void DestroyEntity()
+		if self.target == "LocalPlayer" then log_warning("Cannot Destroy Player Entity...") return end
+		
+		local entity = self:GetOrSpawnEntity()
+		
+		if isvalid(entity) then
+			entity:Destroy()
+		end
+	end
+
+	method void InitWithCommand()
+		local command = self.command
+		
+		local component = nil
+		
+		-- Focus 
+		
+	end
+
+	method void CleanupWithCommand()
+		
+	end
+
+end

@@ -1,0 +1,28 @@
+@Logic
+script PressToShowDialog extends Logic
+
+	@ExecSpace("ClientOnly")
+	method void OnBeginPlay()
+		_DialogDataLogic:LoadData("SampleDialogDataSet")
+	end
+
+	@ExecSpace("ClientOnly")
+	@EventSender("Service", "InputService")
+	handler HandleKeyDownEvent(KeyDownEvent event)
+		--------------- Native Event Sender Info ----------------
+		-- Sender: InputService
+		-- Space: Client
+		---------------------------------------------------------
+		
+		-- Parameters
+		 local key = event.key
+		---------------------------------------------------------
+		
+		if key == KeyboardKey.Alpha1 then
+			_DialogLogic:StartDialog("Tutorial", function ()
+				log("Dialogue Complete")
+			end)
+		end
+	end
+
+end
