@@ -1158,3 +1158,9 @@ Plays a facial emotion on the entity’s avatar renderer for a given duration.
 - **_TimerService** – Schedules delayed and repeated callbacks.  
 - **_EmoteEnum** – Provides emote indices and validation.  
 - **AvatarRendererComponent** – Handles playing facial emotions on the entity.
+
+## Changelog
+
+| Version | Changelog | Download |
+|---------|-----------|----------|
+| V1.0 | Initial release of Custcene Demo | [Download](https://github.com/MapleStory-Worlds-Global/Livestream-Projects/raw/refs/heads/main/CutsceneDemo/CutsceneDemo_V1.modpackage) |

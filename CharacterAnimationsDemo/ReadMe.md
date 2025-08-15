@@ -7,7 +7,7 @@
 [Mod File Installation Guide](https://github.com/MapleStory-Worlds-Global/YoutubeTutorialProjects?tab=readme-ov-file#project-import-instructions)
 
 ## Project File
-[Download Latest Project File](https://github.com/MapleStory-Worlds-Global/YoutubeTutorialProjects/raw/refs/heads/main/Zakums_Curse/Zakums_Curse_V1_1.mod)
+[Download Latest Project File](https://github.com/MapleStory-Worlds-Global/Livestream-Projects/raw/refs/heads/main/CharacterAnimationsDemo/StateAnimationDemo_V1.modpackage)
 
 
 ## Table of Contents
@@ -2137,4 +2137,4 @@ Keeps the behavior tree active by continuously returning a running status.
 ## Changelog
 | Version | Changelog | Download |
 |---------|-------------|-------------|
-| V1_1 | Character Animations Demo Project Files Released! | [Download](https://github.com/MapleStory-Worlds-Global/YoutubeTutorialProjects/raw/refs/heads/main/Zakums_Curse/Zakums_Curse_V1_1.mod) |
+| V1_1 | Character Animations Demo Project Files Released! | [Download](https://github.com/MapleStory-Worlds-Global/Livestream-Projects/raw/refs/heads/main/CharacterAnimationsDemo/StateAnimationDemo_V1.modpackage) |

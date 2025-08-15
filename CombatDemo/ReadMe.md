@@ -8,7 +8,7 @@
 [Mod File Installation Guide](https://github.com/MapleStory-Worlds-Global/YoutubeTutorialProjects?tab=readme-ov-file#project-import-instructions)
 
 ## Project File
-[Download Latest Project File](https://github.com/MapleStory-Worlds-Global/YoutubeTutorialProjects/raw/refs/heads/main/Zakums_Curse/Zakums_Curse_V1_1.mod)
+[Download Latest Project File](https://github.com/MapleStory-Worlds-Global/Livestream-Projects/raw/refs/heads/main/CombatDemo/CombatDemo_V1.modpackage)
 
 
 ## Table of Contents
@@ -431,4 +431,4 @@ Triggered when player stats are updated.
 
 | Version | Changelog | Download |
 |---------|-----------|----------|
-| V1.0 | Initial release of Player Stats & Skills System | Coming Soon |
+| V1.0 | Initial release of Player Stats & Skills System | [Download](https://github.com/MapleStory-Worlds-Global/Livestream-Projects/raw/refs/heads/main/CombatDemo/CombatDemo_V1.modpackage) |
