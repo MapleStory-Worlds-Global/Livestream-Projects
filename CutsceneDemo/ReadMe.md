@@ -7,7 +7,7 @@
 [Mod File Installation Guide](https://github.com/MapleStory-Worlds-Global/YoutubeTutorialProjects?tab=readme-ov-file#project-import-instructions)
 
 ## Project File
-[Download Latest Project File](https://github.com/MapleStory-Worlds-Global/YoutubeTutorialProjects/raw/refs/heads/main/Zakums_Curse/Zakums_Curse_V1_1.mod)
+[Download Latest Project File](https://github.com/MapleStory-Worlds-Global/Livestream-Projects/raw/refs/heads/main/CutsceneDemo/CutsceneDemo_V1.modpackage)
 
 ## Table of Contents
 - [Overview](#overview)
@@ -69,15 +69,15 @@
                 end
             end
         ```
-    * Update MyDesk > Dialog > Sample > SampleDialogDataSet DataSet with the following data: 
-        | DialogId  | ScriptId | PortraitRUID                          | CharacterName   | CharacterScript                                                         | SelectionScripts                  | SelectionScriptIds |
-        |-----------|----------|--------------------------------------|----------------|-------------------------------------------------------------------------|----------------------------------|------------------|
-        | Tutorial  | T_1      | 20dd266f4d1c4ee1a2fbc1a25503cf9f     | Unknown Spirit | Don't touch that *@Nick*. That's an ancient power not intended for man to wield.. it could destroy you. | Umm...                           | T_2              |
-        | Tutorial  | T_2      |                                      | @Nick          | ..Who are you..? And how do you know my name?                           |                                  | T_3              |
-        | Tutorial  | T_3      | 20dd266f4d1c4ee1a2fbc1a25503cf9f     | Unknown Spirit | Never mind that. Just don't touch the sword..                           | Leave the sword alone. | *Poke* | T_4|T_5         |
-        | Tutorial  | T_4      | 20dd266f4d1c4ee1a2fbc1a25503cf9f     | Unknown Spirit | Its for your own good.                                                  | Sure                             |                  |
-        | Tutorial  | T_5      | 20dd266f4d1c4ee1a2fbc1a25503cf9f     | Unknown Spirit | *...*                                                                    |                                  |                  |
-    
+* Update MyDesk > Dialog > Sample > SampleDialogDataSet DataSet with the following data: 
+    | DialogId  | ScriptId | PortraitRUID                          | CharacterName   | CharacterScript                                                         | SelectionScripts                  | SelectionScriptIds |
+    |-----------|----------|--------------------------------------|----------------|-------------------------------------------------------------------------|----------------------------------|------------------|
+    | Tutorial  | T_1      | 20dd266f4d1c4ee1a2fbc1a25503cf9f     | Unknown Spirit | Don't touch that *@Nick*. That's an ancient power not intended for man to wield.. it could destroy you. | Umm...                           | T_2              |
+    | Tutorial  | T_2      |                                      | @Nick          | ..Who are you..? And how do you know my name?                           |                                  | T_3              |
+    | Tutorial  | T_3      | 20dd266f4d1c4ee1a2fbc1a25503cf9f     | Unknown Spirit | Never mind that. Just don't touch the sword..                           | Leave the sword alone. | *Poke* | T_4|T_5         |
+    | Tutorial  | T_4      | 20dd266f4d1c4ee1a2fbc1a25503cf9f     | Unknown Spirit | Its for your own good.                                                  | Sure                             |                  |
+    | Tutorial  | T_5      | 20dd266f4d1c4ee1a2fbc1a25503cf9f     | Unknown Spirit | *...*                                                                    |                                  |                  |
+
 * Attach the PlayerEmote component to the Workspace>DefaultPlayer entity. 
 * Attach the CustomMovementComponent component to the Workspace>DefaultPlayer entity. 
 ---
