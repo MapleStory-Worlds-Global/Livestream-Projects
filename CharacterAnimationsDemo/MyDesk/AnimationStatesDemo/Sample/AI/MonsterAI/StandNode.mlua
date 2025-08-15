@@ -1,0 +1,4 @@
+@BTNode
+script StandNode extends BTNode
+
+end

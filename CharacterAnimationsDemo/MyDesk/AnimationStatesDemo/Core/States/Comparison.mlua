@@ -1,0 +1,14 @@
+@Struct
+script Comparison
+
+	property string type = ""
+
+	property any value = nil
+
+	method Comparison Init(string type, any value)
+		self.type = type
+		self.value = value
+		return self
+	end
+
+end

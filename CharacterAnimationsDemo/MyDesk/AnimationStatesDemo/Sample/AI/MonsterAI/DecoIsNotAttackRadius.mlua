@@ -1,0 +1,25 @@
+@BTNode
+script DecoIsNotAttackRadius extends BTNode
+	property any Child = nil
+	property Monster monster = nil
+	property MonsterStateController monsterState = nil
+
+	method void OnInit()
+		self.monster = self.ParentAI.Entity.Monster
+		self.monsterState = self.ParentAI.Entity.MonsterStateController
+	end
+
+	method any OnBehave(number delta)
+		--Check if the player is in range 
+		local target = self.monster:GetNearestPlayer()
+		if target == nil then
+			return BehaviourTreeStatus.Failure
+		end
+		
+		if self.monster:IsInAttackRange(target.TransformComponent.Position) == true then
+			return BehaviourTreeStatus.Failure
+		else
+			return self.Child:Behave(delta)
+		end
+	end
+end

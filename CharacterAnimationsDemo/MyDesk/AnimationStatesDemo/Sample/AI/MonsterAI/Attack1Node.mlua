@@ -1,0 +1,10 @@
+@BTNode
+script Attack1Node extends AttackNode
+
+
+	method void OnInit()
+		--__base:OnInit()
+		self.monsterState:AttackState(1) 
+	end
+
+end

@@ -1,0 +1,18 @@
+@Component
+script MonsterHit extends HitComponent
+
+	method void OnHit(Entity attacker, integer damage, boolean isCritical, string attackInfo, int32 hitCount)
+		local damageSkin = self.Entity.DamageSkinSpawnerComponent
+		_DamageSkinService:Play(self.Entity, self.Entity.DamageSkinSettingComponent.DamageSkinId.DataId, 0,{damage}, DamageSkinTweenType.Default, false)
+		
+		local evt = CustomHitEvent()
+		evt.attackerEntity = attacker
+		evt.damages = {damage, damage}
+		evt.isCritical = isCritical 
+		evt.extra = attackInfo
+		evt.totalDamage = damage
+		evt.attackCenter = self.Entity.TransformComponent.Position:ToVector2()
+		self.Entity:SendEvent(evt)
+	end
+
+end

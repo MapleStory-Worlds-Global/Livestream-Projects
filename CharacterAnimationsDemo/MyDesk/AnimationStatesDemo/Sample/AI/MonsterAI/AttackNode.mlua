@@ -1,0 +1,33 @@
+@BTNode
+script AttackNode extends BTNode
+	property MonsterStateController monsterState = nil
+	property Monster monster = nil
+	property Entity attackTarget = nil
+
+	method void SetAttackTarget(Entity target)
+		self.attackTarget = target
+
+		
+	end
+
+	method any OnBehave(number delta)
+		if self.monster.isHit then
+			return BehaviourTreeStatus.Failure
+		end
+		if self.monsterState:GetCurrentState() == "ATTACK" then
+			return BehaviourTreeStatus.Running
+		else
+			return BehaviourTreeStatus.Success
+		end
+	end
+
+	method void OnInit()
+		self.monster = self.ParentAI.Entity.Monster
+		self.monsterState = self.ParentAI.Entity.MonsterStateController
+		self.monsterState:AttackState()  
+
+		local target = self.monster:GetNearestPlayer()
+		self.monster:lookAtTarget(target)
+	end
+
+end

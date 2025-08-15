@@ -1,0 +1,70 @@
+@State
+script StateMachine extends StateType
+
+	property table triggers = nil
+
+	property boolean animationComplete = false
+
+	property integer animTimer = 0
+
+	property integer execTimer = 0
+
+	method void OnEnter()
+		local stateController = self.ParentComponent.Entity.CustomStateController
+		local currentStateName = stateController.CurrentStateName
+		local spriteRenderer = self.ParentComponent.Entity.SpriteRendererComponent
+		local stateInfo = stateController:GetStateInfoByState(currentStateName)
+		self.triggers = stateController:GetTriggersByState(currentStateName)
+		
+		local animationComponent = self.ParentComponent.Entity.StateAnimationComponent
+		local animation = animationComponent.ActionSheet[animationComponent:StateStringToAnimationKey(currentStateName)]
+		
+		local animLength = _SpriteUtils:GetAnimationLength(animation,1,1000)
+		
+		--If State has an execution
+		if stateInfo ~= nil and stateInfo.onExecute ~= nil then
+			local executeTime = animLength * stateInfo.executePct
+			self.execTimer = _TimerService:SetTimerOnce(stateInfo.onExecute, executeTime)
+		end
+		
+		self.animTimer = _TimerService:SetTimerOnce(function()
+			self.animationComplete = true
+		end, animLength)
+	end
+
+	method void OnExit()
+		if self.triggers ~= nil then
+			for _, value in ipairs(self.triggers) do
+				---@type TriggerType
+				local trigger = value
+				trigger:OnExit()
+			end
+		end
+		
+		self.animationComplete = false
+		_TimerService:ClearTimer(self.animTimer)
+		_TimerService:ClearTimer(self.execTimer)
+	end
+
+	method boolean OnConditionCheck(string nextStateName)
+		if self.triggers ~= nil then
+			local check = false
+			local hasComparison = false
+			for _, value in ipairs(self.triggers) do
+				---@type TriggerType
+				local trigger = value
+				if (trigger:HasComparison(nextStateName)) then
+					check = trigger:Check(nextStateName)
+					if check == false then
+						break
+					end
+				end
+			end
+			
+			return check
+		else
+			return self.animationComplete
+		end
+	end
+
+end

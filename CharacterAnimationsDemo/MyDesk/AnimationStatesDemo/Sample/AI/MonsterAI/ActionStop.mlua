@@ -1,0 +1,13 @@
+@BTNode
+script ActionStop extends BTNode
+	method any OnBehave(number delta)
+		-- Stops moving.
+		local movement = self.ParentAI.Entity.MovementComponent
+
+		if movement ~= nil then
+			movement:Stop()
+		end
+
+		return BehaviourTreeStatus.Success
+	end
+end

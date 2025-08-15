@@ -1,0 +1,60 @@
+@Component
+script CustomStateController extends StateComponent
+
+	property table triggers = {}
+
+	property table stateFunctions = {}
+
+	method void AddStateWithInfo(StateInfo stateInfo)
+		self:AddState(stateInfo.stateName, StateMachine)
+		self.stateFunctions[stateInfo.stateName] = stateInfo
+	end
+
+	method void AddStateFunction(StateInfo stateInfo)
+		self.stateFunctions[stateInfo.stateName] = stateInfo
+	end
+
+	method StateInfo GetStateInfoByState(string stateName)
+		return self.stateFunctions[stateName]
+	end
+
+	method table GetTriggersByState(string stateName)
+		local result = {}
+		for id, value in pairs(self.triggers) do
+			---@type TriggerType
+			local trigger = value	
+			if trigger:HasConnection(stateName) then
+				table.insert(result, trigger)
+			end
+		end
+		return #result > 0 and result or nil
+	end
+
+	method any GetValue(string triggerID)
+		return self.triggers[triggerID]:GetValue()
+	end
+
+	method void SetValue(string triggerID, any value)
+		local trigger = self.triggers[triggerID]
+		if trigger ~= nil then
+			trigger:SetValue(value)
+		end
+	end
+
+	method void AddTrigger(TriggerType triggerType)
+		self.triggers[triggerType.triggerID] = triggerType
+	end
+
+	method void AddConditionWithTrigger(string stateName, string nextStateName, string triggerID, Comparison comparison, boolean reverseResult)
+		---@type TriggerType
+		local trigger = self.triggers[triggerID]
+		if trigger ~= nil then
+			trigger:AddConnection(stateName)
+			trigger:AddComparison(nextStateName, comparison)
+			self:AddCondition(stateName, nextStateName, reverseResult)
+		else
+			log_warning(string.format("Failed to add condition, triggerID does not exist: %s", triggerID))
+		end
+	end
+
+end

@@ -1,0 +1,16 @@
+@Event
+script CustomHitEvent extends EventType
+
+	property Entity attackerEntity = nil
+
+	property table damages = {}
+
+	property boolean isCritical = false
+
+	property string extra = ""
+
+	property number totalDamage = 0
+
+	property Vector2 attackCenter = Vector2(0,0)
+
+end

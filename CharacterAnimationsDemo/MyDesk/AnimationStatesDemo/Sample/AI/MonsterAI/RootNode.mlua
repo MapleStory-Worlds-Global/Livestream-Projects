@@ -1,0 +1,12 @@
+@BTNode
+script RootNode extends BTNode
+	method void OnInit()
+		
+	end
+
+	method any OnBehave(number delta)
+
+		
+		return BehaviourTreeStatus.Running
+	end
+end

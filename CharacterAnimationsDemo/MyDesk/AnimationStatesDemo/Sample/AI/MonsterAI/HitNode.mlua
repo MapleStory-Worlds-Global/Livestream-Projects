@@ -1,0 +1,18 @@
+@BTNode
+script HitNode extends BTNode
+	property Monster monster = nil
+	property MonsterStateController monsterState = nil
+
+	method void OnInit()
+		self.monster = self.ParentAI.Entity.Monster
+		self.monsterState = self.ParentAI.Entity.MonsterStateController
+	end
+
+
+	method any OnBehave(number delta)
+		if self.monster.isHit == false then
+			return BehaviourTreeStatus.Failure
+		end
+		return BehaviourTreeStatus.Running
+	end
+end

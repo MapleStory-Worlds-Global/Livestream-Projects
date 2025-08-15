@@ -1,0 +1,38 @@
+@BTNode
+script ActionFollow extends BTNode
+
+	property MonsterStateController monsterState = nil
+
+	property Monster monster = nil
+
+	method void OnInit()
+		self.monster = self.ParentAI.Entity.Monster
+		self.monsterState = self.ParentAI.Entity.MonsterStateController
+		self.monsterState:MoveState() 
+	end
+
+	method any OnBehave(number delta)
+		local parentAI = self.ParentAI
+		local transform = parentAI.Entity.TransformComponent
+		local target = self.monster:GetNearestPlayer()
+		
+		if target == nil then
+			return BehaviourTreeStatus.Failure
+		end
+		
+		local diff = target.TransformComponent.WorldPosition - transform.WorldPosition
+		diff = diff:ToVector2()
+		local dist = diff:Magnitude()
+		
+		if dist > 0 then
+			local dir = diff:Normalize()
+			local movement = self.ParentAI.Entity.MovementComponent
+			movement:MoveToDirection(dir, 0)
+			self.monster:Flip(dir.x > 0)
+			return BehaviourTreeStatus.Running
+		end
+		
+		return BehaviourTreeStatus.Success
+	end
+
+end

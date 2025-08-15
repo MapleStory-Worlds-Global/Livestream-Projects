@@ -1,0 +1,8 @@
+@Struct
+script TriggerAutoOff extends TriggerType
+
+	method void OnExit()
+		self.value = false
+	end
+
+end

@@ -1,0 +1,235 @@
+@Component
+script MonsterStateController extends Component
+
+	property string currentStateName = ""
+
+	@ExecSpace("ServerOnly")
+	method void OnBeginPlay()
+		self._T.stateComponent = self.Entity.CustomStateController
+		self._T.movementComponent = self.Entity.MovementComponent
+		self._T.monster = self.Entity.Monster
+		self._T.monsterAttack = self.Entity.MonsterAttack
+		self._T.attackDamages = {10,5}
+		
+		if self:IsServer() then
+			self:SetupAnimationStates()
+			self:SetupAIStates()
+		end
+	end
+
+	method void SetupAnimationStates()
+		---@type CustomStateController
+		local stateComponent = self._T.stateComponent
+		if stateComponent then
+			
+			stateComponent:RemoveState("IDLE")
+			stateComponent:RemoveState("DEAD")
+			stateComponent:RemoveState("HIT")
+		
+			--Create States
+			--Some states have execution information with execution trigger percentages by animation pct. 
+		    stateComponent:AddStateWithInfo(StateInfo():Init("STAND"))
+		    stateComponent:AddStateWithInfo(StateInfo():Init("MOVE"))
+		    stateComponent:AddStateWithInfo(StateInfo():Init("ATTACK"):WithExecution(0.5,function ()
+				self:Attack(self._T.attackDamages[1])
+			end))
+		    stateComponent:AddStateWithInfo(StateInfo():Init("ATTACK2"):WithExecution(0.5,function ()
+				self:Attack(self._T.attackDamages[2])
+			end))
+			
+			
+		    stateComponent:AddStateWithInfo(StateInfo():Init("HIT"):WithExecution(1,function()
+				self:OnHitEnd()
+			end))
+		    stateComponent:AddStateWithInfo(StateInfo():Init("DIE"):WithExecution(1,function ()
+				self:Die()
+			end))
+		
+		    --Create Variables
+		    stateComponent:AddTrigger(TriggerAutoOff():Init(false, "attack"))
+		    stateComponent:AddTrigger(TriggerType():Init( _UtilLogic:RandomIntegerRange(1,2), "attackIndex"))
+		    stateComponent:AddTrigger(TriggerAutoOff():Init(false, "hit"))
+		    stateComponent:AddTrigger(TriggerType():Init(false, "isDead"))
+		    stateComponent:AddTrigger(TriggerType():Init(false, "isMove"))
+			--
+			stateComponent:AddConditionWithTrigger("STAND", "ATTACK", "attack", Comparison():Init(_ComparisonEnum.E, true), false)
+			stateComponent:AddConditionWithTrigger("STAND", "ATTACK", "attackIndex", Comparison():Init(_ComparisonEnum.E, 1), false)
+			stateComponent:AddCondition("ATTACK", "STAND")
+			
+			stateComponent:AddConditionWithTrigger("STAND", "ATTACK2", "attack", Comparison():Init(_ComparisonEnum.E, true), false)
+			stateComponent:AddConditionWithTrigger("STAND", "ATTACK2", "attackIndex", Comparison():Init(_ComparisonEnum.E, 2), false)
+			stateComponent:AddCondition("ATTACK2", "STAND")
+		
+			stateComponent:AddConditionWithTrigger("STAND", "HIT", "hit", Comparison():Init(_ComparisonEnum.E, true), false)
+			stateComponent:AddCondition("HIT", "STAND")
+			stateComponent:AddCondition("HIT", "MOVE")
+		
+			stateComponent:AddConditionWithTrigger("STAND", "DIE", "isDead", Comparison():Init(_ComparisonEnum.E, true), false)
+			stateComponent:AddConditionWithTrigger("DIE", "STAND", "isDead", Comparison():Init(_ComparisonEnum.E, false), false)
+		
+			stateComponent:AddConditionWithTrigger("STAND", "MOVE", "isMove", Comparison():Init(_ComparisonEnum.E, true), false)
+		
+			stateComponent:AddConditionWithTrigger("MOVE", "STAND", "isMove", Comparison():Init(_ComparisonEnum.E, false), false)
+			stateComponent:AddConditionWithTrigger("MOVE", "ATTACK", "attack", Comparison():Init(_ComparisonEnum.E, true), false)
+			stateComponent:AddConditionWithTrigger("MOVE", "ATTACK", "attackIndex", Comparison():Init(_ComparisonEnum.E, 1), false)
+			stateComponent:AddCondition("ATTACK", "MOVE")
+		
+			stateComponent:AddConditionWithTrigger("MOVE", "ATTACK2", "attack", Comparison():Init(_ComparisonEnum.E, true), false)
+			stateComponent:AddConditionWithTrigger("MOVE", "ATTACK2", "attackIndex", Comparison():Init(_ComparisonEnum.E, 2), false)
+			stateComponent:AddCondition("ATTACK2", "MOVE")
+		
+			stateComponent:AddConditionWithTrigger("MOVE", "HIT", "hit", Comparison():Init(_ComparisonEnum.E, true), false)
+			stateComponent:AddConditionWithTrigger("MOVE", "DIE", "isDead", Comparison():Init(_ComparisonEnum.E, true), false)
+				
+			stateComponent:ChangeState("STAND")
+		end
+	end
+
+	@ExecSpace("Server")
+	method void SetupAIStates()
+		local aiComp = self.Entity.AIComponent
+		
+		local root = SelectorNode("Root")
+		
+		local attackSequence = SequenceNode("Attack")
+		attackSequence:AttachChild(ActionStop())
+		attackSequence:AttachChild(AttackNode())
+		
+		local decoIsAttackRadius = DecoIsAttackRadius()
+		decoIsAttackRadius.Child = attackSequence
+		
+		local decoIsNotAttackRadius = DecoIsNotAttackRadius()
+		decoIsNotAttackRadius.Child = ActionFollow()
+		
+		local targetingSequence = SelectorNode("targetingSequence")
+		targetingSequence:AttachChild(HitNode())
+		targetingSequence:AttachChild(decoIsAttackRadius)
+		targetingSequence:AttachChild(decoIsNotAttackRadius)
+		
+		local decoHasTarget = DecoHasTarget()
+		decoHasTarget.Child = targetingSequence
+		
+		local patrolSequence = SequenceNode("Patrol")
+		local moveSequence = SequenceNode("Move")
+		
+		moveSequence:AttachChild(ActionWait())
+		moveSequence:AttachChild(ActionMoveRandom())
+		
+		local decoHasNoTarget = DecoHasNoTarget()
+		decoHasNoTarget.Child = moveSequence
+		
+		patrolSequence:AttachChild(ActionStop())
+		patrolSequence:AttachChild(decoHasNoTarget)
+		
+		root:AttachChild(DieNode())
+		root:AttachChild(decoHasTarget)
+		root:AttachChild(patrolSequence)
+		
+		aiComp:SetRootNode(root)
+		
+	end
+
+	method void StandState()
+		---@type CustomStateController
+		local stateComponent = self._T.stateComponent
+		stateComponent:SetValue("isMove", false)
+	end
+
+	method void AttackState()
+		---@type CustomStateController
+		local stateComponent = self._T.stateComponent
+		stateComponent:SetValue("attack", true)
+		stateComponent:SetValue("attackIndex", _UtilLogic:RandomIntegerRange(1,2))
+	end
+
+	method void Attack(number damage)
+		---@type MonsterAttack
+		local monsterAttack = self._T.monsterAttack
+		monsterAttack:AttackNear(damage)
+	end
+
+	method string GetCurrentState()
+		---@type CustomStateController
+		local stateComponent = self._T.stateComponent
+		
+		return stateComponent.CurrentStateName
+	end
+
+	method void MoveState()
+		---@type CustomStateController
+		local stateComponent = self._T.stateComponent
+		stateComponent:SetValue("isMove", true)
+	end
+
+	method void OnHit()
+		---@type Monster
+		local monster = self._T.monster
+		monster.isHit = true
+	end
+
+	method void HitState()
+		---@type Monster
+		local monster = self._T.monster
+		if monster.IsDead == true then
+			return
+		end
+		---@type CustomStateController
+		local stateComponent = self._T.stateComponent
+		stateComponent:ChangeState("HIT")
+		
+	end
+
+	method void OnHitEnd()
+		---@type Monster
+		local monster = self._T.monster
+		monster.isHit = false
+	end
+
+	method void DieState()
+		---@type CustomStateController
+		local stateComponent = self._T.stateComponent
+		stateComponent:ChangeState("DIE")
+		stateComponent:SetValue("isDead", true)
+	end
+
+	method void Die()
+		---@type Monster
+		local monster = self._T.monster
+		monster:Dead()
+	end
+
+	@ExecSpace("Server")
+	method void Test()
+		--Force Certain States to Play to test State Transitions
+		local stateComponent = self.Entity.CustomStateController
+		if stateComponent then
+			stateComponent:SetValue("attackIndex", _UtilLogic:RandomIntegerRange(1,2))
+			stateComponent:SetValue("attack", true)
+			--stateComponent:SetValue("hit", true)
+			-- ---@type boolean
+			-- local isDead = stateComponent:GetValue("isDead")
+			-- stateComponent:SetValue("isDead", not isDead)
+		end
+	end
+
+	@EventSender("Service", "InputService")
+	handler HandleKeyDownEvent(KeyDownEvent event)
+		--------------- Native Event Sender Info ----------------
+		-- Sender: InputService
+		-- Space: Client
+		---------------------------------------------------------
+		
+		-- Parameters
+		local key = event.key
+		---------------------------------------------------------
+		if key == KeyboardKey.F then 
+			self:Test()
+		end
+	end
+
+	@EventSender("Self")
+	handler HandleHitEvent(CustomHitEvent event)
+		self:HitState()
+	end
+
+end

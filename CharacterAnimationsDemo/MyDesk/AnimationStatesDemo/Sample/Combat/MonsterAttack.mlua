@@ -1,0 +1,87 @@
+@Component
+script MonsterAttack extends AttackComponent
+
+	@MinValue(0)
+	property number AttackInterval = 0.03
+
+	@HideFromInspector
+	property any Shape = nil
+
+	@HideFromInspector
+	property Vector2 SpriteSize = Vector2(0,0)
+
+	@HideFromInspector
+	property Vector2 PositionOffset = Vector2(0,0)
+
+	@ExecSpace("ServerOnly")
+	method void OnBeginPlay()
+		local monster = self.Entity.Monster
+		if not monster then
+			return
+		end
+		
+		self.Shape = BoxShape(Vector2.zero, Vector2.one, 0)
+		
+		-- sprite 사이즈를 가져와 공격 영역으로 사용한다
+		_ResourceService:PreloadAsync({self.Entity.SpriteRendererComponent.SpriteRUID}, function()
+			local clip = _ResourceService:LoadAnimationClipAndWait(self.Entity.SpriteRendererComponent.SpriteRUID)
+			local firstFrameSprite = clip.Frames[1].FrameSprite
+			local firstSpriteSizeInPixel = Vector2(firstFrameSprite.Width, firstFrameSprite.Height)
+			local ppu = firstFrameSprite.PixelPerUnit
+		
+			self.SpriteSize = firstSpriteSizeInPixel / ppu
+			self.PositionOffset = (firstSpriteSizeInPixel / 2 - firstFrameSprite.PivotPixel:ToVector2()) / ppu
+			
+			-- _TimerService:SetTimerRepeat(function() 
+			-- 	if monster.IsDead == false then
+			-- 		self:AttackNear()
+			-- 	end
+			-- end, self.AttackInterval)
+		end)
+	end
+
+	method void AttackNear(number damage)
+		local transformComponent = self.Entity.TransformComponent
+		
+		if isvalid(transformComponent) then
+			local worldPosition = transformComponent.WorldPosition
+			local scaleX = transformComponent.Scale.x
+			local scaleY = transformComponent.Scale.y
+			local radian = math.rad(transformComponent.ZRotation)
+			local offsetX = math.cos(radian) * self.PositionOffset.x * scaleX - math.sin(radian) * self.PositionOffset.y * scaleY
+			local offsetY = math.sin(radian) * self.PositionOffset.x * scaleX + math.cos(radian) * self.PositionOffset.y * scaleY
+			self.Shape.Size = Vector2(self.SpriteSize.x * math.abs(scaleX), self.SpriteSize.y * math.abs(scaleY))
+			self.Shape.Position = Vector2(worldPosition.x + offsetX, worldPosition.y + offsetY)
+			self.Shape.Angle = transformComponent.ZRotation
+		end
+		
+		local attackInfo = {}
+		attackInfo.damage = damage
+		self:AttackFast(self.Shape, _UtilLogic:TableToString(attackInfo), CollisionGroups.Player)
+	end
+
+	method integer CalcDamage(Entity attacker, Entity defender, string attackInfo)
+		local attackTable = _UtilLogic:StringToTable(attackInfo)
+		return attackTable.damage
+	end
+
+	method boolean IsAttackTarget(Entity defender, string attackInfo)
+		if isvalid(defender.PlayerComponent) == false then
+			return false
+		end
+		
+		return __base:IsAttackTarget(defender, attackInfo)
+	end
+
+	method number GetAttackRadius()
+		local transformComponent = self.Entity.TransformComponent
+		local range = 0
+		if isvalid(transformComponent) then
+			local scaleX = transformComponent.Scale.x
+			range = self.SpriteSize.x * math.abs(scaleX)
+		end
+		
+		return range
+	end
+
+end

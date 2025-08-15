@@ -1,0 +1,151 @@
+@Component
+script Monster extends Component
+
+	@Sync
+	property number MaxHp = 100
+
+	@Sync
+	property number Hp = 0
+
+	@Sync
+	property boolean RespawnOn = false
+
+	@Sync
+	@HideFromInspector
+	property boolean IsDead = false
+
+	@Sync
+	property number RespawnDelay = 5
+
+	@Sync
+	property number DestroyDelay = 0.6
+
+	property number detectionDistance = 4.0
+
+	property boolean isHit = false
+
+	method void OnBeginPlay()
+		self.Hp = self.MaxHp
+	end
+
+	@ExecSpace("ServerOnly")
+	method void Dead()
+		self.IsDead = true
+		
+		local delayHide = function()
+			self.Entity:SetVisible(false)
+			self.Entity:SetEnable(false)
+			
+			if self.RespawnOn == false then
+				self.Entity:Destroy()
+			end
+		end
+		
+		_TimerService:SetTimerOnce(delayHide, self.DestroyDelay)
+	end
+
+	@ExecSpace("ServerOnly")
+	method void Respawn()
+		self.IsDead = false
+		self.Entity:SetVisible(true)
+		self.Entity:SetEnable(true)
+		
+		self.Hp = self.MaxHp
+		local stateComponent = self.Entity.StateComponent
+		if stateComponent then
+			stateComponent:ChangeState("IDLE")
+		end
+	end
+
+	method boolean IsInAttackRange(Vector3 position)
+		return Vector2.Distance(position:ToVector2(), self.Entity.TransformComponent.Position:ToVector2()) <= self.Entity.MonsterAttack:GetAttackRadius() * .5
+	end
+
+	method void Flip(boolean flipX)
+		local sprite = self.Entity.SpriteRendererComponent
+		sprite.FlipX = flipX
+	end
+
+	method any GetNearestFoothold(number distance)
+		local footholdComponent = self.Entity.CurrentMap.FootholdComponent
+		
+		if footholdComponent == nil then
+			return nil
+		end
+		
+		local foothold = footholdComponent:Raycast(self.Entity.TransformComponent.Position:ToVector2(), Vector2.down, distance)--footholdComponent:GetNearestFootholdByPoint(self.Entity.TransformComponent.Position:ToVector2(), distance)
+		if foothold == nil then
+			log("There is no close foothold.")
+			return nil
+		end
+		
+		return foothold
+	end
+
+	method Entity GetNearestPlayer()
+		local players = _UserService:GetUsersByMapComponent(self.Entity.CurrentMap.MapComponent)
+		local nearestPlayer = nil
+		local dist = math.maxinteger
+		for i, player in pairs(players) do
+			if isvalid(player) then
+				local distTemp = Vector2.Distance(
+				player.TransformComponent.Position:ToVector2(), self.Entity.TransformComponent.Position:ToVector2())
+				dist = math.min(dist, distTemp)
+				if dist <= self.detectionDistance then
+					nearestPlayer = player
+				end
+			end
+		end
+		
+		return nearestPlayer
+	end
+
+	method void lookAtTarget(Entity target)
+		local flipX = self.Entity.TransformComponent.Position.x < target.TransformComponent.Position.x
+		self.Entity.SpriteRendererComponent.FlipX = flipX
+	end
+
+	method void Push(Vector2 attackCenter)
+		local myPos = self.Entity.TransformComponent.Position 
+		
+		self.Entity.MovementComponent.Enable = false
+		
+		_TimerService:SetTimerOnce(function ()
+			self.Entity.MovementComponent.Enable = true
+		end, 1)
+		
+		--Push away from attack center
+		local dir = math.sign((myPos:ToVector2() - attackCenter).x)
+		local pushForce = 7
+		self.Entity.RigidbodyComponent:AddForce((Vector2.right * dir * pushForce))
+	end
+
+	@ExecSpace("ServerOnly")
+	@EventSender("Self")
+	handler HandleHitEvent(CustomHitEvent event)
+		-- Parameters
+		--local AttackCenter = event.attackCenter
+		local AttackerEntity = event.attackerEntity
+		-- local Damages = event.Damages
+		-- local Extra = event.Extra
+		-- local IsCritical = event.IsCritical
+		local TotalDamage = event.totalDamage
+		--------------------------------------------------------
+		local originalHp = self.Hp
+		self.Hp = self.Hp - TotalDamage
+		
+		
+		if self.Hp > 0 or originalHp <= 0 then
+			self:Push(AttackerEntity.TransformComponent.Position:ToVector2())
+			return	
+		end
+		
+		self:Dead()
+		local timerFunc = function() self:Respawn() end
+		
+		if self.RespawnOn then
+			_TimerService:SetTimerOnce(timerFunc, self.RespawnDelay)
+		end
+	end
+
+end

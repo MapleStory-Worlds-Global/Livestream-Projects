@@ -1,0 +1,20 @@
+@BTNode
+script ActionWait extends BTNode
+	property number ElapsedTime = 0
+	property number Time = 2
+
+
+	method void OnInit()
+		self.ElapsedTime = 0
+	end
+
+	method any OnBehave(number delta)
+		self.ElapsedTime += delta
+
+		if self.ElapsedTime >= self.Time then
+			return BehaviourTreeStatus.Success
+		else
+			return BehaviourTreeStatus.Running
+		end
+	end
+end

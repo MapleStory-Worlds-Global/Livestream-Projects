@@ -1,0 +1,4 @@
+@Component
+script AIMonsterComponent extends AIComponent
+
+end

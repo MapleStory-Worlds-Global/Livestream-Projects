@@ -1,0 +1,22 @@
+@BTNode
+script DecoHasNoTarget extends BTNode
+	property any Child = nil
+	property MonsterStateController monsterState = nil
+	property Monster monster = nil
+
+	method void OnInit()
+		self.monster = self.ParentAI.Entity.Monster
+		self.monsterState = self.ParentAI.Entity.MonsterStateController
+	end
+
+	method any OnBehave(number delta)
+		--Check if the player is in range 
+		local target = self.monster:GetNearestPlayer()
+
+		if target == nil then
+			return self.Child:Behave(delta)
+		else
+			return BehaviourTreeStatus.Failure 
+		end
+	end
+end

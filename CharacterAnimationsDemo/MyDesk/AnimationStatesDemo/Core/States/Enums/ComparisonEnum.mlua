@@ -1,0 +1,14 @@
+@Logic
+script ComparisonEnum extends Logic
+
+	property string G = ">"
+
+	property string GE = ">="
+
+	property string L = "<"
+
+	property string LE = "<="
+
+	property string E = "=="
+
+end

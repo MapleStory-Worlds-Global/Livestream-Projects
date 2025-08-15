@@ -1,0 +1,75 @@
+@BTNode
+script ActionMoveRandom extends BTNode
+
+	property MonsterStateController monsterState = nil
+
+	property Monster monster = nil
+
+	property Vector2 MoveDirection = Vector2(0,0)
+
+	property number MoveTime = 0
+
+	property number ElapsedTime = nil
+
+	property Vector2 horizBounds = Vector2(0,0)
+
+	method void OnInit()
+		self.monster = self.ParentAI.Entity.Monster
+		self.monsterState = self.ParentAI.Entity.MonsterStateController
+		self.monsterState:MoveState() 
+		
+		-- Sets new movement direction and time on each execution.
+		local randomX = _UtilLogic:RandomDouble() - 0.5
+		local randomY = _UtilLogic:RandomDouble() - 0.5
+		
+		---@type Foothold
+		local foothold = self.monster:GetNearestFoothold(1)
+		
+		local fc = self.ParentAI.Entity.CurrentMap.FootholdComponent
+		local left = fc:GetFoothold(foothold.PreviousFootholdId)
+		while (fc:GetFoothold(left.PreviousFootholdId) ~= nil) do
+			left = fc:GetFoothold(left.PreviousFootholdId)
+		end
+		
+		local right = fc:GetFoothold(foothold.NextFootholdId)
+		while (fc:GetFoothold(right.NextFootholdId) ~= nil) do
+			right = fc:GetFoothold(right.NextFootholdId)
+		end
+		
+		
+		local footholdSize = Vector2(left:GetCenter().x, right:GetCenter().x)
+		
+		self.horizBounds = Vector2(footholdSize.x + 1, footholdSize.y - 1)
+		
+		self.MoveDirection = Vector2(randomX, randomY):Normalize()
+		self.MoveTime = _UtilLogic:RandomDouble() * 2 + 2
+		self.ElapsedTime = 0
+		
+		local movement = self.ParentAI.Entity.MovementComponent
+		   		movement:MoveToDirection(self.MoveDirection, 0)
+		self.monster:Flip(self.MoveDirection.x > 0)
+	end
+
+	method any OnBehave(number delta)
+		-- Moves in accordance with the time and direction specified in OnInit().
+		-- Returns success when the monster touches the player.
+		
+		local movement = self.ParentAI.Entity.MovementComponent
+		
+		self.ElapsedTime += delta
+		
+		local myPos = self.ParentAI.Entity.TransformComponent.Position
+		if self.ElapsedTime >= self.MoveTime then
+			movement:MoveToDirection(Vector2.zero, 0)
+			return BehaviourTreeStatus.Success        
+		end
+		
+		if (self.MoveDirection.x < 0 and myPos.x <= self.horizBounds.x) or (self.MoveDirection.x > 0 and myPos.x >= self.horizBounds.y) then
+			movement:MoveToDirection(-self.MoveDirection, 0)
+			self.monster:Flip(self.MoveDirection.x > 0)
+		end
+		
+		return BehaviourTreeStatus.Running  
+	end
+
+end

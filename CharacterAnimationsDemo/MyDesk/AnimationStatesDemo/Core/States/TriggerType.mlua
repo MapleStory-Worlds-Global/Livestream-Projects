@@ -1,0 +1,82 @@
+@Struct
+script TriggerType
+
+	property string triggerID = ""
+
+	property any value = nil
+
+	property table comparisons = {}
+
+	property table connections = {}
+
+	method TriggerType Init(any value, string triggerID)
+		--Value MUST Be initialized upon type creation. 
+		self.value = value
+		self.triggerID = triggerID
+		return self
+	end
+
+	method any GetValue()
+		return self.value
+	end
+
+	method void SetValue(any value)
+		--Types must match for assignment
+		if type(self.value) == type(value) then
+			self.value = value
+		else
+			log_warning(string.format("Type Mismatch: %s and %s. Could not set value", type(self.value), type(value)))
+		end
+	end
+
+	method void AddConnection(string stateName)
+		table.insert(self.connections, stateName)
+	end
+
+	method boolean HasConnection(string stateName)
+		local hasConnection = false
+		for _, connection in ipairs(self.connections) do
+			if connection == stateName then
+				hasConnection = true
+				break
+			end
+		end
+		
+		return hasConnection
+	end
+
+	method boolean HasComparison(string nextStateName)
+		return self.comparisons[nextStateName] ~= nil
+	end
+
+	method void AddComparison(string nextStateName, Comparison comparison)
+		self.comparisons[nextStateName] = comparison
+	end
+
+	method void OnExit()
+		
+	end
+
+	method boolean Check(string nextStateName)
+		local result = false
+		
+		local comparison = self.comparisons[nextStateName]
+		if comparison ~= nil then
+			if comparison.type == _ComparisonEnum.E then
+				result = self.value == comparison.value 
+			elseif comparison.type == _ComparisonEnum.G then
+				result = self.value > comparison.value 
+			elseif comparison.type == _ComparisonEnum.GE then
+				result = self.value >= comparison.value 
+			elseif comparison.type == _ComparisonEnum.L then
+				result = self.value < comparison.value 
+			elseif comparison.type == _ComparisonEnum.LE then
+				result = self.value <= comparison.value 
+			end
+		end
+		
+		--log("Result " .. nextStateName .. ": " .. tostring(result))
+		return result
+	end
+
+end

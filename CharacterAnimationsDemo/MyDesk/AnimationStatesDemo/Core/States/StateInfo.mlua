@@ -1,0 +1,21 @@
+@Struct
+script StateInfo
+
+	property string stateName = ""
+
+	property number executePct = 0.5
+
+	property any onExecute = nil
+
+	method StateInfo Init(string stateName)
+		self.stateName = stateName
+		return self
+	end
+
+	method StateInfo WithExecution(number executePct, any onExecute)
+		self.executePct = executePct
+		self.onExecute = onExecute
+		return self
+	end
+
+end
