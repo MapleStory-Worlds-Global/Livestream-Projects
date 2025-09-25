@@ -57,7 +57,9 @@ script Monster extends Component
 
 	method void Respawn(Vector3 position)
 		self.Hp = self.MaxHp
-		self:UpdateHealth()
+	
+		self._T.HealthBar:Set(self.MaxHp)
+
 		self.Entity.TransformComponent.Position = position
 		self.Entity:SetEnable(true)
 		self.Entity:SetVisible(true)

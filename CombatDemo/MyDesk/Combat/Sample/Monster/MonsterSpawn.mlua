@@ -80,8 +80,8 @@ script MonsterSpawn extends Component
 		local footholdComponent = self.Entity.CurrentMap.FootholdComponent
 		local footholdBounds = _WorldUtils:GetFootholdExtents(playerFoothold, footholdComponent) 
 		
-		local leftX = footholdBounds["left"].x + 1-- x coordinate on the left side of the spawn area
-		local rightX = footholdBounds["right"].x - 1 -- x coordinate on the right side of the spawn area
+		local leftX = footholdBounds["left"].x + 2-- x coordinate on the left side of the spawn area
+		local rightX = footholdBounds["right"].x - 2 -- x coordinate on the right side of the spawn area
 		local y = playerFoothold:GetCenter().y -- y coordinate of the spawn area
 		local areaWidth = rightX - leftX
 		local positions = {}
