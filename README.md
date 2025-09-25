@@ -59,7 +59,7 @@ Reference the project page found in the associated github project folder for pro
 
 | Projects | Description | Documentation | Project Files Download |
 |---------|-------------|---------|--------------------|
-| Combat Demo | Learn the basics of combat with MapleStory Worlds! | [View](https://github.com/MapleStory-Worlds-Global/Livestream-Projects/tree/main/CombatDemo) | [Download Mod](https://github.com/MapleStory-Worlds-Global/Livestream-Projects/raw/refs/heads/main/CombatDemo/CombatDemo_V1.modpackage) | 
+| Combat Demo | Learn the basics of combat with MapleStory Worlds! | [View](https://github.com/MapleStory-Worlds-Global/Livestream-Projects/tree/main/CombatDemo) | [Download Mod](https://github.com/MapleStory-Worlds-Global/Livestream-Projects/raw/refs/heads/main/CombatDemo/CombatDemo.modpackage) | 
 | Cutscene Demo | Learn to implement cutscene sequences of your very own! | [View](https://github.com/MapleStory-Worlds-Global/Livestream-Projects/tree/main/CutsceneDemo) | [Download Mod](https://github.com/MapleStory-Worlds-Global/Livestream-Projects/raw/refs/heads/main/CutsceneDemo/CutsceneDemo_V1.modpackage) |
 | Character Animations Demo | Learn to work with animations using MapleStory Worlds! | [View](https://github.com/MapleStory-Worlds-Global/Livestream-Projects/tree/main/CharacterAnimationsDemo) | [Download Mod](https://github.com/MapleStory-Worlds-Global/Livestream-Projects/raw/refs/heads/main/CharacterAnimationsDemo/StateAnimationDemo_V1.modpackage) |
 
