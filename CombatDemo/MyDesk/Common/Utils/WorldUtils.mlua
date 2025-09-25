@@ -1,0 +1,25 @@
+@Logic
+script WorldUtils extends Logic
+
+	method table GetFootholdExtents(any foothold, FootholdComponent footholdComponent)
+		local horizBounds = Vector2.zero
+		
+		local left = footholdComponent:GetFoothold(foothold.PreviousFootholdId)
+		while (footholdComponent:GetFoothold(left.PreviousFootholdId) ~= nil) do
+		    left = footholdComponent:GetFoothold(left.PreviousFootholdId)
+		end
+		
+		local right = footholdComponent:GetFoothold(foothold.NextFootholdId)
+		while (footholdComponent:GetFoothold(right.NextFootholdId) ~= nil) do
+		    right = footholdComponent:GetFoothold(right.NextFootholdId)
+		end
+		
+		
+		local footholdSize = Vector2(left:GetCenter().x, right:GetCenter().x)
+		
+		horizBounds = Vector2(footholdSize.x + 1, footholdSize.y - 1)
+		
+		return {["left"] = left:GetCenter(), ["right"] = right:GetCenter()} 
+	end
+
+end

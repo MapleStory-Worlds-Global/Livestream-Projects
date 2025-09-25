@@ -59,6 +59,13 @@ script Monster extends Component
 		self.Hp = self.MaxHp
 		self:UpdateHealth()
 		self.Entity.TransformComponent.Position = position
+		self.Entity:SetEnable(true)
+		self.Entity:SetVisible(true)
+		self.IsDead = false
+		local stateComponent = self.Entity.StateComponent
+		if stateComponent then
+			stateComponent:ChangeState("IDLE")
+		end
 	end
 
 	@ExecSpace("Client")

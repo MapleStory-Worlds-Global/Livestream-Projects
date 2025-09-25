@@ -80,6 +80,7 @@ script PlayerAttack extends AttackComponent
 	end
 
 	method boolean IsAttackTarget(Entity defender, string attackInfo)
+		if isvalid(defender.Monster) == false then return false end 
 		local isTarget = __base:IsAttackTarget(defender,attackInfo)
 		local playerStats = self.Entity.PlayerInfoComponent:GetStats() 
 		

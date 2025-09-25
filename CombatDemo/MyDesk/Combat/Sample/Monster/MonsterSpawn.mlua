@@ -13,6 +13,8 @@ script MonsterSpawn extends Component
 
 	property table MonsterArray = {}
 
+	property number spawnHeight = 1
+
 	@ExecSpace("ServerOnly")
 	method void OnBeginPlay()
 		self.MonsterArray = {}
@@ -20,41 +22,74 @@ script MonsterSpawn extends Component
 
 	method void SpawnMonster(integer spawnCount)
 		local parent = _EntityService:GetEntityByPath("/maps/" .. self.Entity.CurrentMapName)
-		local nextNum = 0
+		local index = 1
 		local positions = self:GetRandomPosition(spawnCount)
 		
-		for i = 1, #positions do
-			local monster = self.MonsterArray[nextNum]
+		local spawned = 1
+		while (spawned <= spawnCount) do 
+			local monster = self.MonsterArray[index]
 			
 			if not isvalid(monster) then 
-				self.MonsterArray[i] = _SpawnService:SpawnByModelId(
+				self.MonsterArray[index] = _SpawnService:SpawnByModelId(
 				self.monsterID, 
 				"SpawnedMonster",
-				positions[i],
+				positions[spawned],
 				parent)
+				_EffectService:PlayEffect("9c5db7680db44750b1c37660ff3ccd78", self.Entity, positions[spawned], 0, Vector3.one)
+				spawned += 1
 			else
-				if not monster.Enabled then 
-					monster.Monster:Respawn(positions[i])
+				if not monster.EnabledInHierarchy then 
+					monster.Monster:Respawn(positions[spawned])
+					_EffectService:PlayEffect("9c5db7680db44750b1c37660ff3ccd78", self.Entity, positions[spawned], 0, Vector3.one)
+					spawned += 1
 				end
+				index += 1
 			end
 			
 			
-			_EffectService:PlayEffect("9c5db7680db44750b1c37660ff3ccd78", self.Entity, positions[i], 0, Vector3.one)
+			
 		end
+		--for i = 1, #positions do
+		--    local monster = self.MonsterArray[nextNum]
+		--    
+		--    if not isvalid(monster) then 
+		--        self.MonsterArray[i] = _SpawnService:SpawnByModelId(
+		--        self.monsterID, 
+		--        "SpawnedMonster",
+		--        positions[i],
+		--        parent)
+		--    else
+		--        if not monster.EnabledInHierarchy then 
+		--            monster.Monster:Respawn(positions[i])
+		--        end
+		--    end
+		--    
+		--    nextNum += 1
+		--    _EffectService:PlayEffect("9c5db7680db44750b1c37660ff3ccd78", self.Entity, positions[i], 0, Vector3.one)
+		--end
 		
 		
 	end
 
 	method table GetRandomPosition(integer spawnCount)
-		local leftX = self.spawnRange.x -- x coordinate on the left side of the spawn area
-		local rightX = self.spawnRange.y -- x coordinate on the right side of the spawn area
-		local y = 0 -- y coordinate of the spawn area
+		
+		
+		local userEntities = _UserService:GetUsersByMapComponent(self.Entity.CurrentMap.MapComponent) 
+		local playerFoothold = userEntities[_UtilLogic:RandomIntegerRange(1, #userEntities)].RigidbodyComponent:GetCurrentFoothold()
+		log(playerFoothold.StartPoint.x .. "/" .. playerFoothold.EndPoint.x)
+		local footholdComponent = self.Entity.CurrentMap.FootholdComponent
+		local footholdBounds = _WorldUtils:GetFootholdExtents(playerFoothold, footholdComponent) 
+		
+		local leftX = footholdBounds["left"].x + 1-- x coordinate on the left side of the spawn area
+		local rightX = footholdBounds["right"].x - 1 -- x coordinate on the right side of the spawn area
+		local y = playerFoothold:GetCenter().y -- y coordinate of the spawn area
 		local areaWidth = rightX - leftX
 		local positions = {}
 		
 		for i = 1, spawnCount do
 			local randomX = (_UtilLogic:RandomIntegerRange(0,100) / 100) * areaWidth + leftX
-			positions[i] = Vector3(randomX, y, 0)
+			positions[i] = footholdComponent:GetNearestFootholdByPoint(Vector2(randomX, y), 2):GetCenter():ToVector3() + Vector3.up * 1
+			log(positions[i])
 		end
 		
 		
@@ -64,10 +99,9 @@ script MonsterSpawn extends Component
 
 	method integer GetCurMonsterCount()
 		local i = 1
-		
 		local count = 0
 		while i <= #self.MonsterArray do
-			if isvalid(self.MonsterArray[i]) and self.MonsterArray[i].Enable then
+			if isvalid(self.MonsterArray[i]) and self.MonsterArray[i].EnabledInHierarchy then
 				count += 1
 			end
 			

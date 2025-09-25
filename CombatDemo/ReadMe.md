@@ -3388,3 +3388,4 @@ Handles key input events to trigger debug actions such as opening the stat windo
 | Version | Changelog | Download |
 |---------|-----------|----------|
 | V1.0 | Initial release of Player Stats & Skills System | [Download](https://github.com/MapleStory-Worlds-Global/Livestream-Projects/raw/refs/heads/main/CombatDemo/CombatDemo_V1.modpackage) |
+| V1.1 | UI Asset Fixes. Monster Spawner Foothold Tracking Addition. | [Download](https://github.com/MapleStory-Worlds-Global/Livestream-Projects/raw/refs/heads/main/CombatDemo/CombatDemo_V1.modpackage) |

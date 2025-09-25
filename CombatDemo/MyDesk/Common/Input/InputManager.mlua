@@ -2,6 +2,7 @@
 script InputManager extends Logic
 
 	property table inputBuffer = {}
+
 	property boolean isReady = false
 
 	@ExecSpace("Client")
@@ -76,7 +77,7 @@ script InputManager extends Logic
 		-- Parameters
 		local key = event.key
 		--------------------------------------------------------
-
+		
 		if self.isReady == false then
 			return
 		end
@@ -94,7 +95,7 @@ script InputManager extends Logic
 		-- Parameters
 		local key = event.key
 		---------------------------------------------------------
-
+		
 		if self.isReady == false then
 			return
 		end
