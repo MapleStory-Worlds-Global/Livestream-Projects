@@ -76,7 +76,6 @@ script MonsterSpawn extends Component
 		
 		local userEntities = _UserService:GetUsersByMapComponent(self.Entity.CurrentMap.MapComponent) 
 		local playerFoothold = userEntities[_UtilLogic:RandomIntegerRange(1, #userEntities)].RigidbodyComponent:GetCurrentFoothold()
-		log(playerFoothold.StartPoint.x .. "/" .. playerFoothold.EndPoint.x)
 		local footholdComponent = self.Entity.CurrentMap.FootholdComponent
 		local footholdBounds = _WorldUtils:GetFootholdExtents(playerFoothold, footholdComponent) 
 		
