@@ -54,7 +54,7 @@ This documentation covers the Player Stats, Skills, Animation, and UI systems us
 
 ---
 ## Setup and Installation
-* Update the uiPath variable under Sample>DebugLogic Logic script file with the correct path for your world by right clicking on the desired map under Heirarchy>maps>CombatDemo and selecting "Copy Entity Path" then pasting it to the uiPath variable. 
+* Update the uiPath variable under Sample>DebugLogic Logic script file with the correct path for your world by right clicking on the desired map under Heirarchy>UI>["YourUIGroupName"] and selecting "Copy Entity Path" then pasting it to the uiPath variable. 
 * Attach the following components to the Default Player Object found under the Workspace root folder. 
   * PlayerSkillComponent
   * PlayerInfoComponent
