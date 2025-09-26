@@ -65,6 +65,9 @@ This documentation covers the Player Stats, Skills, Animation, and UI systems us
   * ColliderVisualizer (Optional)
     * If using ColliderVisualizer, enable the "VisializeAttack" property under the PlayerAttack component. 
 * Place the "Sample>Monster>Model>Model_MonsterSpawner" model entity into the Heirarchy by right clicking on the model and clicking "PlaceToHeirarchy". This will periodically spawn in monsters into the world. 
+* Locate monster model "Combat>Sample>Monster>Models>Model_Monster-35" and check if the collision group under the hitcomponent shows an error. If it does, this is because the "Monster" collision layer does not yet exist.
+    * Create the "Monster" collision group by selecting the arrow next to the Collision Group and creating a new "Monster" collision group. 
+    * Assign the monsters collision group to the newly created collision group. 
 * The DebugLogic script file will spawn the necessary UI entities for the demo. It also contains debug input events that binds F1 to open the stat window, and F2 to trigger the player to level up. 
 ---
 

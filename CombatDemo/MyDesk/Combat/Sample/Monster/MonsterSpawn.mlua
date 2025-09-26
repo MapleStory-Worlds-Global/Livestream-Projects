@@ -45,28 +45,7 @@ script MonsterSpawn extends Component
 				end
 				index += 1
 			end
-			
-			
-			
 		end
-		--for i = 1, #positions do
-		--    local monster = self.MonsterArray[nextNum]
-		--    
-		--    if not isvalid(monster) then 
-		--        self.MonsterArray[i] = _SpawnService:SpawnByModelId(
-		--        self.monsterID, 
-		--        "SpawnedMonster",
-		--        positions[i],
-		--        parent)
-		--    else
-		--        if not monster.EnabledInHierarchy then 
-		--            monster.Monster:Respawn(positions[i])
-		--        end
-		--    end
-		--    
-		--    nextNum += 1
-		--    _EffectService:PlayEffect("9c5db7680db44750b1c37660ff3ccd78", self.Entity, positions[i], 0, Vector3.one)
-		--end
 		
 		
 	end
