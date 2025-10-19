@@ -64,7 +64,7 @@ script PlayerAttack extends AttackComponent
 
 	method boolean CalcCritical(Entity attacker, Entity defender, string attackInfo)
 		local critChance = attacker.PlayerInfoComponent.stats.critChance
-		return _UtilLogic:RandomDouble() < (_UtilLogic:RandomIntegerRange(0,critChance)/100)
+		return _UtilLogic:RandomDouble() < critChance/100
 	end
 
 	method float GetCriticalDamageRate()
